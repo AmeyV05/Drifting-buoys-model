@@ -35,9 +35,13 @@ def main(Bnum,indexing,Cor):
     print("Running simulation for buoy number: " + Bnum)
 
     #nc file locations
-    fileloc="P:/1230882-emodnet_hrsm/fromAmey/container"
+    if os.path.isdir('../Data_from_models'):
+     fileloc="../Data_from_models"
+     print(1)
+    else:
+     fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
     print("Reading GTSM data")
-    file=fileloc+"/Data_from_models/gtsm_truncated.nc"
+    file=fileloc+"/gtsm_truncated.nc"
     sindex=0
     eindex=sindex+indexing
     arrlen=eindex-sindex
@@ -77,7 +81,7 @@ def main(Bnum,indexing,Cor):
     print("Interpolation successfully done. Processing complete for GTSM data.")
     print("Reading ERA5 wind data.")
     #ERA 5 winds
-    file=fileloc+"/Data_from_models/era5_wind_201403_05.nc"
+    file=fileloc+"/era5_wind_201403_05.nc"
     sindex=360 #converting to 15th march 00
     eindex=sindex+int((indexing/4))
     arrlen=eindex-sindex  
@@ -104,7 +108,7 @@ def main(Bnum,indexing,Cor):
     #Ocean_currents_CMEMS
     #obtaining u and v velocity of ocens
     print("Reading ocean currents data.")
-    file=fileloc+"/Data_from_models/Ocean_currents_buoy.nc"
+    file=fileloc+"/Ocean_currents_buoy.nc"
     sindex=0
     eindex=int(indexing/4)
     arrlen=eindex-sindex
