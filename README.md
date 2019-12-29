@@ -17,6 +17,9 @@ One needs access to the location:P:\1230882-emodnet_hrsm\fromAmey\container\Data
 
 If you don't have access to the directory please contact the author for obtaining the required data. 
 
+It is highly recommended to copy this folder and run the code if you are connected to Deltares project folder through a remote connection like NetExtender.
+
 Sometimes there is a runtime error while reading the ncfiles from above location.
 In such a situation, please copy the folder 'Data_from_models' to the project working directory and run the script again.
+
 
