@@ -18,7 +18,7 @@ def read_GTSM_his(file,sindex,eindex):
  print("Completed reading GTSM data")
  return (Xt,Yt,Ut,Vt,Tt)
 
-def read_GTSM_map(file,sindex,eindex):
+def read_GTSM_map(file):
  GTSM_data= nc4.Dataset(file)
  gtsm_grp=GTSM_data.groups['GTSM Tidal Velocity truncated data']
  Xt=np.array(gtsm_grp.variables["FlowElem_xcc"]) #X is longitdue and Y is latitude
@@ -26,7 +26,6 @@ def read_GTSM_map(file,sindex,eindex):
  Tt=np.array(gtsm_grp.variables["Time"])[1:]
  Ut=np.array(gtsm_grp.variables["ucx"])[1:,:]
  Vt=np.array(gtsm_grp.variables["ucy"])[1:,:]
- Tt=gf.num2datetimesecs(2014,3,1,sindex,eindex,Tt)
  print("Completed reading GTSM data")
  return (Xt,Yt,Ut,Vt,Tt)
  
@@ -35,35 +34,33 @@ def read_GTSM_map(file,sindex,eindex):
 #reading ERA5 winds data
 #obtaining u and v velocity of winds 
 # note winds always start from 1900 1 1
-def read_wind(file,sindex,eindex):
+def read_wind(file):
  wind_data_u = nc4.Dataset(file)
  Xa=np.array(wind_data_u.variables["longitude"])
  Ya=np.array(wind_data_u.variables["latitude"])
  Ta=np.array(wind_data_u.variables["time"])
- Ta=gf.num2datetimehrs(1900,1,1,sindex,eindex,Ta)
- u10=np.array(wind_data_u.variables["u10"])[sindex:eindex,:,:]
- v10=np.array(wind_data_u.variables["v10"])[sindex:eindex,:,:]
+ u10=np.array(wind_data_u.variables["u10"])
+ v10=np.array(wind_data_u.variables["v10"])
  print("Completed reading wind data")
  return (Xa,Ya,u10,v10,Ta)
 
 #Ocean_currents_CMEMS
 #obtaining u and v velocity of ocean
 #note ocean starts from 1950 
-def read_ocean(file,sindex,eindex):
+def read_ocean(file):
  ocean_data = nc4.Dataset(file)
  Xo=np.array(ocean_data.variables["longitude"])
  Yo=np.array(ocean_data.variables["latitude"])
  To=np.array(ocean_data.variables["time"])
- To=gf.num2datetimehrs(1950,1,1,sindex,eindex,To)
- uo=np.array(ocean_data.variables["uo"])[sindex:eindex,0,:,:]
- vo=np.array(ocean_data.variables["vo"])[sindex:eindex,0,:,:]
+ uo=np.array(ocean_data.variables["uo"])
+ vo=np.array(ocean_data.variables["vo"])
  print("Completed reading ocean currents data")
  return (Xo,Yo,uo,vo,To)
 
 
 def main():
  file="../Data_from_models/era5_wind_201403_05.nc"
- [Xw,Yw,Ut,Vt,Tt]=read_wind(file,336,1824)
+ [Xw,Yw,Ut,Vt,Tt]=read_wind(file)
  print(len(Xw),len(Yw))
 
 if __name__ == '__main__':
