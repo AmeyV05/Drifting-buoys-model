@@ -1,0 +1,15 @@
+Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter.
+Buoy directory already exists.
+Running simulation for buoy number07
+Completed reading GTSM data
+Processing complete for GTSM data. Interpolation successfully done.
+Completed reading wind data
+Processing complete for wind data. Interpolation successfully done.
+Completed reading ocean currents data
+Processing complete for ocean currents data. Interpolation successfully done.
+Velocity vectors successfully merged. Model simulation started.
+1072800.0
+Do you want Coriolis force? If yes, type 1 else any other number.Model Simulations done.
+Velocity vectors are available in the following loc:C:/Users/vasulkar/OneDrive - Stichting Deltares/Documents/Research_data/buoy_analysis/generated_data/BUOY_07
+Plotting started
+Plotting completed. Files available in:C:/Users/vasulkar/OneDrive - Stichting Deltares/Documents/Research_data/buoy_analysis/generated_data/BUOY_07
