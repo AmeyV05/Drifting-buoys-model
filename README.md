@@ -1,7 +1,9 @@
 # Ice Buoy_data_analysis
 A python code to process and analyse buoy data from the SMOS experiment. The code produces simulation output for free drift ice motion and compares it with buoy drift. The generated data is stored in the folder "generated data"
 
-Open the folder py_scripts and run the file "main_script.py"
+To run the program, copy the entire repository 'ice_buoy_data_analysis' locally to your system.
+On the command prompt, open the folder py_scripts. 
+Run the file "main_script.py" by typing "python main_script.py"
 
 Please note that you need the following packages:
 
