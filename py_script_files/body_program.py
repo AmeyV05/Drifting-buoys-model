@@ -37,7 +37,6 @@ def main(Bnum,indexing,Cor):
     #nc file locations
     if os.path.isdir('../Data_from_models'):
      fileloc="../Data_from_models"
-     print(1)
     else:
      fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
     print("Reading GTSM data")
