@@ -16,3 +16,7 @@ Note that one should be connected to the Deltares P: project directory for the c
 One needs access to the location:P:\1230882-emodnet_hrsm\fromAmey\container\Data_from_models 
 
 If you don't have access to the directory please contact the author for obtaining the required data. 
+
+Sometimes there is a runtime error while reading the ncfiles from above location.
+In such a situation, please copy the folder 'Data_from_models' to the project working directory and run the script again.
+
