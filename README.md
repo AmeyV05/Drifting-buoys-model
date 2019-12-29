@@ -9,3 +9,10 @@ Please note that you need the following packages:
 2. Netcdf4  
 3. Cartopy (plotting on a world map)
 
+It is assumed that you already have numpy and scipy packages installed.
+
+
+Note that one should be connected to the Deltares P: project directory for the code to successfully run.
+One needs access to the location:P:\1230882-emodnet_hrsm\fromAmey\container\Data_from_models 
+
+If you don't have access to the directory please contact the author for obtaining the required data. 
