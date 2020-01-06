@@ -3,6 +3,7 @@
 import netCDF4 as nc4 
 import numpy as np
 import generalfunc as gf
+import logging 
 np.set_printoptions(threshold=np.inf)
 
 #Note that data only available
@@ -15,7 +16,7 @@ def read_GTSM_his(file,sindex,eindex):
  Vt=np.array(GTSM_data.variables["y_velocity"])[sindex:eindex,1]
  Tt=np.array(GTSM_data.variables["time"])
  Tt=gf.num2datetimesecs(2014,3,1,sindex,eindex,Tt)
- print("Completed reading GTSM data")
+ logging.info("Completed reading GTSM data")
  return (Xt,Yt,Ut,Vt,Tt)
 
 def read_GTSM_map(file):
@@ -26,7 +27,7 @@ def read_GTSM_map(file):
  Tt=np.array(gtsm_grp.variables["Time"])[1:]
  Ut=np.array(gtsm_grp.variables["ucx"])[1:,:]
  Vt=np.array(gtsm_grp.variables["ucy"])[1:,:]
- print("Completed reading GTSM data")
+ logging.info("Completed reading GTSM data")
  return (Xt,Yt,Ut,Vt,Tt)
  
 
@@ -41,7 +42,7 @@ def read_wind(file):
  Ta=np.array(wind_data_u.variables["time"])
  u10=np.array(wind_data_u.variables["u10"])
  v10=np.array(wind_data_u.variables["v10"])
- print("Completed reading wind data")
+ logging.info("Completed reading wind data")
  return (Xa,Ya,u10,v10,Ta)
 
 #Ocean_currents_CMEMS
@@ -54,7 +55,7 @@ def read_ocean(file):
  To=np.array(ocean_data.variables["time"])
  uo=np.array(ocean_data.variables["uo"])
  vo=np.array(ocean_data.variables["vo"])
- print("Completed reading ocean currents data")
+ logging.info("Completed reading ocean currents data")
  return (Xo,Yo,uo,vo,To)
 
 

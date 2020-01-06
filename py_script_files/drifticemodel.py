@@ -41,9 +41,9 @@ def model(x,ti,f,Uwvec,Uavec):
  Uw=(Uwvec[ti,0]-u)*np.cos(thetaw)-(Uwvec[ti,1]-v)*np.sin(thetaw)
  Vw=(Uwvec[ti,0]-u)*np.sin(thetaw)+(Uwvec[ti,1]-v)*np.cos(thetaw)
  dx[2] = d_u  = (r_ice_water*rho_water*Uw*u_mag + 
-        r_air_ice*rho_air*Ua*abs(Ua))/(rho_ice*h)-((f*Vw)) 
+        r_air_ice*rho_air*Ua*abs(Ua))/(rho_ice*h)+((f*v)) 
  dx[3] = d_v  = (r_ice_water*rho_water*Vw*u_mag+
-       r_air_ice*rho_air*Va*abs(Va))/(rho_ice*h)+((f*Uw))
+       r_air_ice*rho_air*Va*abs(Va))/(rho_ice*h)-((f*u))
  return dx
 
 

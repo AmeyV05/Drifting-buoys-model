@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import scipy.io
-from scipy.interpolate import RegularGridInterpolator
 from scipy.interpolate import interp2d
 from scipy.interpolate import Rbf
 import Bdataprocess as bdat
@@ -13,11 +12,12 @@ import drifticemodel as dimodel
 import os
 import generalfunc as gf
 import genplots as gp
+import logging
 
 def main(Bnum,indexing,Cor,TD,AD,OD):
     prefix="BUOY_"
     bname=prefix+Bnum
-    print("Processing started for buoy: "+ bname)
+    logging.info("Processing started for buoy: "+ bname)
     #Buoy data analysis
     # define the name of the directory to be created
     path = "../generated_data/"+bname
@@ -31,7 +31,7 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
     Vib=Vib[96:]
     Tib=Tib[96:]
     # print(len(Xib))
-    print("Running simulation for buoy number: " + Bnum)
+    logging.info("Running simulation for buoy number: " + Bnum)
     # obtaining GTSM tidal data in vector form from dictonary TD
     Xt=TD['Xt']
     Yt=TD['Yt']
@@ -42,7 +42,7 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
     eindex=sindex+indexing
     arrlen=eindex-sindex   
     Tt=gf.num2datetimesecs(2014,3,1,sindex,eindex,Tt)
-    print("Interpolating GTSM data to buoy locations....")
+    logging.info("Interpolating GTSM data to buoy locations....")
     # processing of gtsm data
     #interpolating the u and v velocities to the buoy locations.
     Buoy_Xi=Xib #buoy longitude in hourly basis (x position)
@@ -73,7 +73,7 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
         Vt=np.append(Vt,vinterp(xb,yb))
         #print(i)
 
-    print("Interpolation successfully done. Processing complete for GTSM data.")
+    logging.info("Interpolation successfully done. Processing complete for GTSM data.")
 
     sindex=360 #converting to 15th march 00
     eindex=sindex+int((indexing/4))
@@ -87,7 +87,7 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
     Ta=gf.num2datetimehrs(1900,1,1,sindex,eindex,Ta)
     u10=u10[sindex:eindex,:,:]
     v10=v10[sindex:eindex,:,:]
-    print("Interpolating wind data to buoy locations....")
+    logging.info("Interpolating wind data to buoy locations....")
     # processing of wind data
     #interpolating the u and v velocities to the buoy locations. Note that the ERA5 winds are hourly. 
     Buoy_Xi=Xib[::4] #buoy longitude in hourly basis (x position)
@@ -104,8 +104,8 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
         Ua=np.append(Ua,uinterp(Buoy_Xi[i],Buoy_Yi[i]))
         Va=np.append(Va,vinterp(Buoy_Xi[i],Buoy_Yi[i]))
 
-    print("Interpolation successfully done.")
-    print("Processing complete for wind data.")
+    logging.info("Interpolation successfully done.")
+    logging.info("Processing complete for wind data.")
 
     #Ocean_currents_CMEMS
 
@@ -122,7 +122,7 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
     vo=vo[sindex:eindex,0,:,:]
     #processing of ocean data 
 
-    print("Interpolating ocean currents data to buoy locations....")
+    logging.info("Interpolating ocean currents data to buoy locations....")
     Buoy_Xi=Xib[::4] #buoy longitude in hourly basis (x position)
     Buoy_Yi=Yib[::4]
     Uo=[]
@@ -137,11 +137,11 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
         Uo=np.append(Uo,uinterp(Buoy_Xi[i],Buoy_Yi[i]))
         Vo=np.append(Vo,vinterp(Buoy_Xi[i],Buoy_Yi[i]))
 
-    print("Interpolation successfully done.")
-    print("Processing complete for ocean currents data.")
+    logging.info("Interpolation successfully done.")
+    logging.info("Processing complete for ocean currents data.")
     # Vel_transformations
     [Utvec,Uibvec,Uavec,Uovec,Uwvec]=gf.veltransform(Uib,Vib,Ut,Vt,Ua,Va,Uo,Vo,path)
-    print("Velocity vectors successfully merged. Model simulation started.")
+    logging.info("Velocity vectors successfully merged. Model simulation started.")
     #simulations
     #simulation parameters
     seconds= 1.0 #si unit
@@ -156,11 +156,11 @@ def main(Bnum,indexing,Cor,TD,AD,OD):
     times = np.arange(tstart,tstop,tstep)
     [Xis,Yis,Uisvec]=dimodel.simulation(Uavec,Uwvec,Xib[0],Yib[0],Uib[0],Vib[0],times,Cor)
 
-    print("Model Simulations done.")
+    logging.info("Model Simulations done.")
     gf.save2excel(Tib,Utvec,Uibvec,Uisvec,Uovec,Uwvec,Uavec,path)
-    print("Velocity vectors are available in the following loc:"+ path)
-    print("Plotting started")
+    logging.info("Velocity vectors are available in the following loc:"+ path)
+    logging.info("Plotting started")
     gp.plticevel(Uisvec,Uibvec,path)
     gp.plticepos(Xib,Yib,Xis,Yis,path)
-    print("Plotting completed. Files available in:" +path)
-    print("Processing completed for buoy: "+ bname )
+    logging.info("Plotting completed. Files available in:" +path)
+    logging.info("Processing completed for buoy: "+ bname )
