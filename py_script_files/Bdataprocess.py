@@ -18,9 +18,9 @@ def bdata(file):
  Uib=[]
  Vib=[]
  for j in range(len(Xib)-1):
-  dlon=Yib[j+1]-Yib[j]
-  dlat=Xib[j+1]-Xib[j]
-  lat=Xib[j]
+  dlon=Xib[j+1]-Xib[j]
+  dlat=Yib[j+1]-Yib[j]
+  lat=Yib[j]
   (dlatm,dlonm)=gf.latlon2meters(lat,dlat,dlon)
   Uib=np.append(Uib,(dlonm)/dt)
   Vib=np.append(Vib,(dlatm)/dt)
