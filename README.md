@@ -24,4 +24,5 @@ It is highly recommended to copy this folder and run the code if you are connect
 Sometimes there is a runtime error while reading the ncfiles from above location.
 In such a situation, please copy the folder 'Data_from_models' to the project working directory and run the script again.
 
+**Please use release 1.2 onwards. There was an error in velocity calucations which was later corrected**
 
