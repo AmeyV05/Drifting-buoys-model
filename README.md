@@ -1,5 +1,10 @@
 # Ice Buoy_data_analysis
-A python code to process and analyse buoy data from the SMOS experiment. The code produces simulation output for free drift ice motion and compares it with buoy drift. The generated data is stored in the folder "generated data"
+A python code to process and analyse buoy data obtained from an experiment to verify a ship route optimization algorithm. The theoretical aspects of the project are published in the EGU2020 proceedings. Following is the link:
+
+https://doi.org/10.5194/egusphere-egu2020-7544 
+
+
+The code produces simulation output for free drift ice motion and compares it with buoy drift. The generated data is stored in the folder "generated_data"
 
 To run the program, copy the entire repository 'ice_buoy_data_analysis' locally to your system.
 On the command prompt, open the folder py_scripts. 
@@ -9,6 +14,7 @@ Please note that you need the following packages:
 
 1. Python 3.6 
 2. Netcdf4  
+3. Pandas
 3. Cartopy (plotting on a world map)
 
 It is assumed that you already have numpy and scipy packages installed.
@@ -26,3 +32,4 @@ In such a situation, please copy the folder 'Data_from_models' to the project wo
 
 **Please use release 1.2 onwards. There was an error in velocity calucations which was later corrected**
 
+***Updated version 2.0 is now released***
