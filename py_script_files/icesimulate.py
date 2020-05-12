@@ -98,10 +98,10 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("Model Simulations done.")
   Xib=PD['Xib'][:-fedge+1]; Yib=PD['Yib'][:-fedge+1]
   Xibf=PD['Xibf']; Yibf=PD['Yibf']
-  # logging.info("Plotting started")
-  # gp.plticevel(Uisvec,Uibvec,tmplierinv,path)
-  # gp.plticepos(Xib,Yib,Xis,Yis,path)
-  # logging.info("Plotting completed. Files available in:" +path)
+  logging.info("Plotting started")
+  gp.plticevel(Uisvec,Uibvec,tmplierinv,path)
+  gp.plticepos(Xib,Yib,Xis,Yis,path)
+  logging.info("Plotting completed. Files available in:" +path)
   #error statistics
   
   #pos error stats
@@ -119,7 +119,7 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("RMS error in velocity is: "+str(rms))
   logging.info("Weighted mean error in velocity is: "+str(werr))
   errvel=np.column_stack((merr,rms,werr))
-
+  #creating excel file
   simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel)
   logging.info("Processing completed for buoy: "+ bname )
   # gf.logcopy(path)
