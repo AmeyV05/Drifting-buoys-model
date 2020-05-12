@@ -1,2 +1,0 @@
-This folder contains data generated for each individual buoys.
-Please note that the previous data will be overwritten if you run the code twice.
