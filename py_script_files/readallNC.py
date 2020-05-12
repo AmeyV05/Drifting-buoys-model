@@ -1,4 +1,4 @@
-#module to load data from GTSM
+#module to load data from all the data files.
 
 import netCDF4 as nc4 
 import numpy as np
@@ -21,14 +21,15 @@ def read_GTSM_his(file,sindex,eindex):
 
 def read_GTSM_map(file):
  GTSM_data= nc4.Dataset(file)
- gtsm_grp=GTSM_data.groups['GTSM Tidal Velocity truncated data']
+ gtsm_grp=GTSM_data.groups['GTSM Tidal truncated data']
  Xt=np.array(gtsm_grp.variables["FlowElem_xcc"]) #X is longitdue and Y is latitude
  Yt=np.array(gtsm_grp.variables["FlowElem_ycc"])
- Tt=np.array(gtsm_grp.variables["Time"])[1:]
- Ut=np.array(gtsm_grp.variables["ucx"])[1:,:]
- Vt=np.array(gtsm_grp.variables["ucy"])[1:,:]
+ Tt=np.array(gtsm_grp.variables["Time"]) #[1:]
+ Ut=np.array(gtsm_grp.variables["ucx"])# [1:,:]
+ Vt=np.array(gtsm_grp.variables["ucy"])# [1:,:]
+ ssht=np.array(gtsm_grp.variables["s1"])
  logging.info("Completed reading GTSM data")
- return (Xt,Yt,Ut,Vt,Tt)
+ return (Xt,Yt,Ut,Vt,ssht,Tt)
  
 
 
@@ -55,9 +56,46 @@ def read_ocean(file):
  To=np.array(ocean_data.variables["time"])
  uo=np.array(ocean_data.variables["uo"])
  vo=np.array(ocean_data.variables["vo"])
+ ssh=np.array(ocean_data.variables["zos"])
  logging.info("Completed reading ocean currents data")
- return (Xo,Yo,uo,vo,To)
+ return (Xo,Yo,uo,vo,ssh,To)
 
+def read_ice(file):
+ ice_data=nc4.Dataset(file)
+ Xe=np.array(ice_data.variables["longitude"])
+ Ye=np.array(ice_data.variables["latitude"])
+ Te=np.array(ice_data.variables["time"])
+ hi=np.array(ice_data.variables["sithick"])
+ logging.info("Completed reading ice parameter data")
+ return(Xe,Ye,hi,Te)
+
+def readingalldata(fileloc):
+ #####GTSM data
+ logging.info("Reading GTSM data")
+ #print("Reading GTSM data")
+ # file=fileloc+"/gtsm_truncated.nc"
+ file=fileloc+"/GTSM_final_truncated.nc"
+ # file=r"P:/1230882-emodnet_hrsm/fromAmey/Modelling_buoy_analysis/GTSM_final_truncated.nc"
+ [Xt,Yt,ut,vt,ssht,Tt]=read_GTSM_map(file)
+ TD={'Xt': Xt,'Yt': Yt,'ut': ut,'vt': vt,'ssht': ssht,'Tt': Tt}
+ #### ERA 5 winds
+ logging.info("Reading ERA5 wind data.")
+ #ERA 5 winds
+ file=fileloc+"/era5_wind_201403_05.nc"
+ [Xa,Ya,u10,v10,Ta]=read_wind(file)
+ AD={'Xa': Xa,'Ya': Ya,'u10': u10,'v10': v10,'Ta': Ta}
+ ## Ocean currents
+ logging.info("Reading ocean currents data.")
+ # file=fileloc+"/Ocean_currents_buoy.nc"
+ file=fileloc+"/CMEMS_ocean_data.nc"
+ [Xo,Yo,uo,vo,ssh,To]=read_ocean(file)
+ OD={'Xo': Xo,'Yo': Yo,'uo': uo,'vo': vo,'ssh':ssh,'To': To}
+ logging.info("Reading Ice thickness data.")
+ file=fileloc+"/ice-param-mercator.nc"
+ [Xe,Ye,hi,Te]=read_ice(file)
+ ID={'Xe': Xe,'Ye': Ye,'hi':hi,'Te': Te}
+ FD={'TD':TD,'AD':AD,'OD':OD,'ID':ID}
+ return(FD)
 
 def main():
  file="../Data_from_models/era5_wind_201403_05.nc"

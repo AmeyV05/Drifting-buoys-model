@@ -1,87 +1,103 @@
 # main script file.
-
 import numpy as np
-import body_program as BP
+import icesimulate as isim
+import enkfmain as enkf
+import processdata as ncdat
 import readallNC as rdnc
 import os
 import logging
+import sys
+import optCw as oCw
+import iteratescript as itscrpt 
+import generalfunc as gf
 # buoy number decides the indexing
-# '03' : 5856
+# '03' : 5952
 
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
 
-logging.basicConfig(filename='../generated_data/out.log', filemode='w', level=logging.DEBUG)
+gendata='../generated_data'
+gf.mkdir_p(gendata)
+# logging changes to create a log file and also show log in the terminal.
+logging.basicConfig(filename=gendata+'/out.log', filemode='w', level=logging.DEBUG)
 # define a Handler which writes INFO messages or higher to the sys.stderr
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 # add the handler to the root logger
 logging.getLogger('').addHandler(console)
 
-def bindexing(Bnum,switcher):
- return switcher.get(Bnum,"Invalide Buoy number")
 
-#
-
-#nc file locations
-
-#nc file locations
-if os.path.isdir('../Data_from_models'):
- fileloc="../Data_from_models"
-else:
- fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
-def readingalldata(fileloc):
- #####GTSM data
- logging.info("Reading GTSM data")
- #print("Reading GTSM data")
- file=fileloc+"/gtsm_truncated.nc"
- [Xt,Yt,ut,vt,Tt]=rdnc.read_GTSM_map(file)
- TD={'Xt': Xt,'Yt': Yt,'ut': ut,'vt': vt,'Tt': Tt}
- #### ERA 5 winds
- logging.info("Reading ERA5 wind data.")
- #ERA 5 winds
- file=fileloc+"/era5_wind_201403_05.nc"
- [Xa,Ya,u10,v10,Ta]=rdnc.read_wind(file)
- AD={'Xa': Xa,'Ya': Ya,'u10': u10,'v10': v10,'Ta': Ta}
- ## Ocean currents
- logging.info("Reading ocean currents data.")
- file=fileloc+"/Ocean_currents_buoy.nc"
- [Xo,Yo,uo,vo,To]=rdnc.read_ocean(file)
- OD={'Xo': Xo,'Yo': Yo,'uo': uo,'vo': vo,'To': To}
- return(TD,AD,OD)
+#indexing for different dates and times based on available buoy data.
 switcher={
   '02':3152,
   '03':5952,
   '09':3160,
-  '07':1192,
+  # '07':1192, as data only till 28 MArch
   '12':3024,
   '13':2524,
   '14':2136,
   '16':5952
   }
-#Bnum="15"
-print("Do you wish to run the code for all the buoys or a particular buoy? ")
-print("Type 1, if you want to run for all the buoys else any other number for a particular buoy data.")
-count=int(input())
-Cor=int(input("Do you want Coriolis force? If yes, type 1 else any other number: "))
-if (count==1 and Cor==1):
-  logging.info("Program running for all buoys with Coriolis force.")
-elif (count==1 and Cor !=1):
-  logging.info("Program running for all buoys without Coriolis force.")
-elif (count!=1 and Cor==1):
-  logging.info("Program running for only 1 buoy with Coriolis force.")
+
+#numtaps corresponds to filtered buoy observations.
+numtaps=2*24*2+1
+#numtaps=0
+fedge=int(numtaps/2)
+sdate=96*16
+#96 means 1 day
+
+# #deciding whether to run the code for all the buoys or 1 buoy. 
+logging.info("Do you wish to run the code for all the buoys or a particular buoy? ")
+logging.info("Type 1, if you want to run for all the buoys else any other number for a particular buoy data.")
+bcount=int(input())
+
+#checking if all the nc files should be read to create a pos vel excel file?
+logging.info("Do you wish to read and process data from all the NC files? ")
+logging.info("Please note that this is computationally heavy and time demanding operation.")
+logging.info("So, if you have already created the appropriate position & velocity xlsx file don't perform this operation. ")
+logging.info("Generally, first time users only do this operation.") 
+ncdatcount=int(input("Type 1 if you want to read all the NC files and create .xlsx files. Else, any other number: "))
+
+# This describes which forces and parameters are included. 
+#cor=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]
+Cor=[1,1,1,1,1,1,1,1,1,1,1,1]
+
+if (bcount!=1):
+  #Getting buoy number input.
+  print("Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter: ")
+  Bnum=input()
+  logging.info("Running for: Buoy_"+Bnum)
+  indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
+  if (ncdatcount==1):
+    logging.info("Running the script for reading all the .NC data files.")
+    #Define nc file locations
+    if os.path.isdir('../Data_from_models'):
+      fileloc="../Data_from_models"
+    else:
+      fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
+    FD=rdnc.readingalldata(fileloc)
+    ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
+  isim.body(Bnum,indexing,numtaps,Cor)
+
 else:
-  logging.info("Program running for only 1 buoy without Coriolis force.")
-[TD,AD,OD]=readingalldata(fileloc)
-if (count==1):
- for i in switcher:
-  Bnum=i
-  indexing=switcher[i]-96
-  BP.main(Bnum,indexing,Cor,TD,AD,OD)
-else:
- 
- print("Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter.")
- Bnum=input()
- logging.info("Running for: "+Bnum)
- indexing=switcher.get(Bnum,"Invalid Buoy number")-96
- BP.main(Bnum,indexing,Cor,TD,AD,OD)
+  for i in switcher:
+    Bnum=i
+    logging.info("Running for: Buoy_"+Bnum)
+    indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
+    if (ncdatcount==1):
+      logging.info("Running the script for reading all the .NC data files.")
+      #Define nc file locations
+      if os.path.isdir('../Data_from_models'):
+        fileloc="../Data_from_models"
+      else:
+        fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
+      FD=rdnc.readingalldata(fileloc)
+      ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
+    isim.body(Bnum,indexing,numtaps,Cor)
 
 
+
+
+## To run ensemble filter scripts and optimization
+# itscrpt.main(Bnum,indexing,Cor)
+# enkf.body(Bnum,indexing,Cor)

@@ -7,37 +7,54 @@ import numpy as np
 import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import shapely.geometry as sgeom
-
-
+plt.rcParams.update({
+    "pgf.texsystem": "pdflatex",
+    "pgf.preamble": [
+         r"\usepackage[utf8x]{inputenc}",
+         r"\usepackage[T1]{fontenc}",
+         r"\usepackage{cmbright}",
+         ]
+})
+params = {'legend.fontsize': '16',
+         'axes.labelsize': 'x-large',
+         'axes.titlesize':'x-large',
+         'xtick.labelsize':'16',
+         'ytick.labelsize':'16',
+         "font.weight":'bold'}
+plt.rcParams.update(params)
 ## plotting of x and y ice buoy velocities versus simulated drifts. 
 
-def plticevel(Uisvec,Uibvec,path):
-	fig=plt.figure(figsize=(12, 7))
-	plt.subplot(1,2,1)
-	plt.plot(Uibvec[:,0],color='r',label='buoy_drift')
-	plt.plot(Uisvec[:,0],color='g',linestyle=":",label='sim_ice_drift')
-	plt.xlabel('Time')
-	plt.ylabel('U')
-	plt.legend(loc=1)               
-	plt.subplot(1,2,2)
-	plt.plot(Uibvec[:,1],color='r',label='buoy_drift')
-	plt.plot(Uisvec[:,1],color='g',linestyle=":",label='sim_ice_drift')
-	plt.xlabel('Time')
-	plt.ylabel('V')
-	plt.legend(loc=1)
-	plt.savefig(path+'/velplot.jpg', format='jpg', dpi=500)
-	#plt.show()
-	plt.close(fig)
+def plticevel(Uisvec,Uibvec,tmplierinv,path):
+ Uibvec=np.repeat(Uibvec,tmplierinv,axis=0)
+ fig=plt.figure(figsize=(12, 7))
+ plt.subplot(1,2,1)
+ plt.plot(Uibvec[:,0],color='r',label='buoy_drift')
+ plt.plot(Uisvec[:,0],color='g',linestyle=":",label='sim_ice_drift')
+ plt.xlabel('Time')
+ plt.ylabel('U')
+ plt.legend(loc=1)               
+ plt.subplot(1,2,2)
+ plt.plot(Uibvec[:,1],color='r',label='buoy_drift')
+ plt.plot(Uisvec[:,1],color='g',linestyle=":",label='sim_ice_drift')
+ plt.xlabel('Time')
+ plt.ylabel('V')
+ plt.legend(loc=1)
+ plt.savefig(path+'/velplot.jpg', format='jpg')
+ #plt.show()
+ plt.close(fig)
 
 
 def plticepos(Xib,Yib,Xis,Yis,path):
  fig=plt.figure(figsize=(12, 12), frameon=True)
  ax=plt.axes(projection=ccrs.LambertAzimuthalEqualArea(central_longitude=25.0,central_latitude=77.0)) 
- ax.set_extent([15,33,74,81]) 
+ # ax.set_extent([15,33,74,81]) 
+ ax.set_extent([16,28,74,78]) 
  # Define gridline locations and draw the lines using cartopy's built-in gridliner:
  # *must* call draw in order to get the axis boundary used to add ticks:
  fig.canvas.draw()
- xticks = [ 0, 5, 10, 15, 20, 25, 30, 35, 40]
+ # xticks = [ 0, 5, 10, 15, 20, 25, 30, 35, 40]
+ # yticks = [72, 74, 76, 78, 80, 82]
+ xticks = [  0, 4, 12, 16, 20, 24, 28, 32, 36]
  yticks = [72, 74, 76, 78, 80, 82]
  ax.gridlines(xlocs=xticks, ylocs=yticks)
  # Label the end-points of the gridlines using the custom tick makers:
@@ -48,18 +65,39 @@ def plticepos(Xib,Yib,Xis,Yis,path):
 
  # Plotting buoy obs and buoy simulated locations
  plt.plot(Xib,Yib,color='red',transform=ccrs.PlateCarree(),label='buoy drift')
- plt.plot(Xis,Yis,color='yellow',transform=ccrs.PlateCarree(),label='simulated ice drift') 
+ plt.plot(Xis,Yis,'--',color='yellow',transform=ccrs.PlateCarree(),label='simulated ice drift') 
  # gebco wms background 
  service='https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?'
  ax.add_wms(service,layers=['GEBCO_LATEST'],wms_kwargs={'width':900*2,'height':600*2})
- plt.legend()
- plt.savefig(path+'/ice_drift.jpg',dpi=500)
+ feature=cpf.GSHHSFeature(scale='i',levels=[1],facecolor='#e6e1e1',alpha=1)
+ ax.add_feature(feature) 
+ plt.legend(prop={"size":16},framealpha=1)
+ plt.savefig(path+'/ice_drift.jpg')
  plt.close(fig) 
 
 
+def pltalpha(alpha,path,name):
+ fig=plt.figure(figsize=(12,7),frameon=True)
+ plt.plot(alpha,label=name)
+ plt.xlabel('time')
+ plt.ylabel(name)
+ plt.savefig(path+'/'+name+'.jpg',format='jpg')
+ plt.close(fig)
 
 
-
+def convplt(rmsposvec,tmvec,s,path,mod):
+ xrms=rmsposvec[::2]
+ yrms=rmsposvec[1::2]
+ s['tmplier']=tmvec
+ tvec = 15*s['tmplier']*s['minutes']
+ fig=plt.figure(figsize=(12,12),frameon=True)
+ plt.plot(tvec,xrms,'--bo',label='longitude rms')
+ plt.plot(tvec,yrms,'--r*',label='latitude rms')
+ plt.xlabel('time step size')
+ plt.ylabel('rms error')
+ plt.legend()
+ plt.savefig(path+'/convergence_'+str(s['h'])+'_'+mod+'.jpg')
+ plt.close(fig)
 ## functions used to label x and y axis in cartopy for lambert conformal projections. 
 # Adopted from cartopy github
 
