@@ -17,7 +17,7 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
     # define the name of the directory to be created
     path = "../generated_data/"+bname
     gf.mkdir_p(path)
-    file ='../buoy_data_excel/procesd_buoy_loc_data_Lars/'+bname+'.csv'
+    file ='../../container/buoy_data_excel/procesd_buoy_loc_data_Lars/'+bname+'.csv'
     #file ='../buoy_data_excel/CliSAP_Boje_16_modified.csv'
     [Xib,Yib,Uib,Vib,Tib]=bdat.bdata(file)
     Xib=Xib[sdate:]

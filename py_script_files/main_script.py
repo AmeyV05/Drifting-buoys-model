@@ -48,8 +48,7 @@ sdate=96*16
 
 # #deciding whether to run the code for all the buoys or 1 buoy. 
 logging.info("Do you wish to run the code for all the buoys or a particular buoy? ")
-logging.info("Type 1, if you want to run for all the buoys else any other number for a particular buoy data.")
-bcount=int(input())
+bcount=int(input("Type 1, if you want to run for all the buoys else any other number for a particular buoy data: "))
 
 #checking if all the nc files should be read to create a pos vel excel file?
 logging.info("Do you wish to read and process data from all the NC files? ")
@@ -64,15 +63,14 @@ Cor=[1,1,1,1,1,1,1,1,1,1,1,1]
 
 if (bcount!=1):
   #Getting buoy number input.
-  print("Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter: ")
-  Bnum=input()
+  Bnum=input("Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter: ")
   logging.info("Running for: Buoy_"+Bnum)
   indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
   if (ncdatcount==1):
     logging.info("Running the script for reading all the .NC data files.")
     #Define nc file locations
-    if os.path.isdir('../Data_from_models'):
-      fileloc="../Data_from_models"
+    if os.path.isdir('../../container/Data_from_models'):
+      fileloc="../../container/Data_from_models"
     else:
       fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
     FD=rdnc.readingalldata(fileloc)
@@ -87,8 +85,8 @@ else:
     if (ncdatcount==1):
       logging.info("Running the script for reading all the .NC data files.")
       #Define nc file locations
-      if os.path.isdir('../Data_from_models'):
-        fileloc="../Data_from_models"
+      if os.path.isdir('../../container/Data_from_models'):
+        fileloc="../../container/Data_from_models"
       else:
         fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
       FD=rdnc.readingalldata(fileloc)

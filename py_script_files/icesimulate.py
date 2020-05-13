@@ -98,6 +98,7 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("Model Simulations done.")
   Xib=PD['Xib'][:-fedge+1]; Yib=PD['Yib'][:-fedge+1]
   Xibf=PD['Xibf']; Yibf=PD['Yibf']
+  Uibvec=PD['Uibvec']
   logging.info("Plotting started")
   gp.plticevel(Uisvec,Uibvec,tmplierinv,path)
   gp.plticepos(Xib,Yib,Xis,Yis,path)
@@ -111,7 +112,6 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("Weighted mean error in position is: "+str(werr))
   errpos=np.column_stack((merr,rms,werr))
   #vel error stats
-  Uibvec=PD['Uibvec']
   Uib=Uibvec[:,0][:-fedge];Vib=Uibvec[:,1][:-fedge]
   Uis=Uisvec[:,0];Vis=Uisvec[:,1]
   (merr,rms,werr)=gf.errstats(Uib,Vib,Uis,Vis,tmplierinv)
