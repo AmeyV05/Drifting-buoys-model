@@ -33,4 +33,4 @@ If you don't have access to the above folders please contact the author for obta
 
 **Please use release 1.2 onwards. There was an error in velocity calucations which was later corrected**
 
-***Updated version 2.0 by the name of Nova1.0 is now released***
+***Updated version by the name of Nova1.0 is now released***
