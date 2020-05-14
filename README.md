@@ -22,7 +22,7 @@ It is assumed that you already have numpy and scipy packages installed within py
 
 Note that one should be connected to the Deltares P: project directory for the code to successfully run.
 One needs access to the folders: 
-(Windows hence '\' and not '/')
+(Windows hence ' backslash ' and not '/')
 P:\1230882-emodnet_hrsm\fromAmey\container\Data_from_models 
 P:\1230882-emodnet_hrsm\fromAmey\container\Buoy_data_excel
 
@@ -33,4 +33,4 @@ If you don't have access to the above folders please contact the author for obta
 
 **Please use release 1.2 onwards. There was an error in velocity calucations which was later corrected**
 
-***Updated version 2.0 is now released***
+***Updated version 2.0 by the name of Nova1.0 is now released***
