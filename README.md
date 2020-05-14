@@ -22,7 +22,7 @@ It is assumed that you already have numpy and scipy packages installed within py
 
 Note that one should be connected to the Deltares P: project directory for the code to successfully run.
 One needs access to the folders: 
-(Windows hence ' backslash ' and not '/')
+(Windows hence ' $backslash$ ' and not '/')
 P:\1230882-emodnet_hrsm\fromAmey\container\Data_from_models 
 P:\1230882-emodnet_hrsm\fromAmey\container\Buoy_data_excel
 
