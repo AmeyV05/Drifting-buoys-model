@@ -79,7 +79,7 @@ def simulate(s,Bnum,indexing,Cor):
 def body(Bnum,indexing,numtaps,Cor):
   prefix="BUOY_"
   bname=prefix+Bnum
-  path = "../generated_data/"+bname
+  path = "../../generated_data/"+bname
   (Cornam,folname)=gf.Cordesfunc(Cor)
   path=path+'/'+folname
   gf.mkdir_p(path)

@@ -27,7 +27,7 @@ def bdata(file):
  return(Xib,Yib,Uib,Vib,Tib)
 
 def main():
- file ='../buoy_data_excel/procesd_buoy_loc_data_Lars/BUOY_02.csv'
+ file ='../../container/buoy_data_excel/procesd_buoy_loc_data_Lars/BUOY_02.csv'
  [Xib,Yib,Uib,Vib,Tib]=bdata(file)
  print(Tib)
 

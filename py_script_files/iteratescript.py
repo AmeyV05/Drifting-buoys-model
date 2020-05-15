@@ -1,3 +1,4 @@
+#WIP
 # a script for iterating over Enkf
 import numpy as np 
 import enkfmain as enkf 

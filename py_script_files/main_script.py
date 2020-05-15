@@ -16,7 +16,7 @@ import generalfunc as gf
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
 
-gendata='../generated_data'
+gendata='../../generated_data'
 gf.mkdir_p(gendata)
 # logging changes to create a log file and also show log in the terminal.
 logging.basicConfig(filename=gendata+'/out.log', filemode='w', level=logging.DEBUG)
@@ -52,7 +52,7 @@ bcount=int(input("Type 1, if you want to run for all the buoys else any other nu
 
 #checking if all the nc files should be read to create a pos vel excel file?
 logging.info("Do you wish to read and process data from all the NC files? ")
-logging.info("Please note that this is computationally heavy and time demanding operation.")
+logging.info("Please note that this is a computationally heavy and time demanding operation.")
 logging.info("So, if you have already created the appropriate position & velocity xlsx file don't perform this operation. ")
 logging.info("Generally, first time users only do this operation.") 
 ncdatcount=int(input("Type 1 if you want to read all the NC files and create .xlsx files. Else, any other number: "))

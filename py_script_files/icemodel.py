@@ -50,7 +50,7 @@ def readveldata(path):
 def initialisation(Bnum,indexing,s):
  prefix="BUOY_"
  bname=prefix+Bnum
- path = "../generated_data/"+bname
+ path = "../../generated_data/"+bname
  PD=readveldata(path)
  # s=settings()
  dt=s['dt']

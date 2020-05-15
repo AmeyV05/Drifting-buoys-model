@@ -15,7 +15,7 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
     logging.info("Processing started for buoy: "+ bname)
     #Buoy data analysis
     # define the name of the directory to be created
-    path = "../generated_data/"+bname
+    path = "../../generated_data/"+bname
     gf.mkdir_p(path)
     file ='../../container/buoy_data_excel/procesd_buoy_loc_data_Lars/'+bname+'.csv'
     #file ='../buoy_data_excel/CliSAP_Boje_16_modified.csv'
@@ -267,7 +267,7 @@ def mainproc(Bnum,indexing,FD,numtaps,sdate):
     ID=FD['ID']
     prefix="BUOY_"
     bname=prefix+Bnum
-    path = "../generated_data/"+bname
+    path = "../../generated_data/"+bname
     PD=processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate)
     Utvec=PD['Utvec']
     Uavec=PD['Uavec']
