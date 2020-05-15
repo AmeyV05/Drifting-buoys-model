@@ -246,7 +246,7 @@ def Cordesfunc(Cor):
   Pgyt=Pgxt
   Cornam=[f,h,Uax,Uay,Utx,Uty,Uox,Uoy,Pgxo,Pgyo,Pgxt,Pgyt]
   #Folder name for storing the data.
-  folname='h'+str(Cor[0])+'f'+str(Cor[1])+ \
+  folname='h'+str(Cor[1])+'f'+str(Cor[0])+ \
           'A'+str(Cor[2])+'T'+str(Cor[4])+ \
           'O'+str(Cor[6])+'P'+str(Cor[8])
   return(Cornam,folname)
