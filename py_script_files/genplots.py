@@ -84,6 +84,22 @@ def pltalpha(alpha,path,name):
  plt.savefig(path+'/'+name+'.jpg',format='jpg')
  plt.close(fig)
 
+def pltFT(path,name,xb,xs,tvec,arg_m2,arg_74,arg_79):
+ fig=plt.figure(figsize=(12,7),frameon=True)
+ plt.plot(tvec,xb,label=name+"_obs")
+ plt.plot(tvec,xs,label=name+"_sim")
+ tidelab="M2";corlab="Coriolis_74.7";corlab2="Coriolis_79"
+ plt.axvline(tvec[arg_m2], linewidth=1, color='r', linestyle='dashed',label=tidelab)
+ plt.axvline(tvec[arg_74], linewidth=1, color='g', linestyle='dashed',label=corlab)
+ plt.axvline(tvec[arg_79], linewidth=1, color='y', linestyle='dashed',label=corlab2)
+ plt.xlabel('Period[h]')
+ plt.ylabel('Amplitude')
+ plt.xlim([10,15])
+ plt.legend(loc=1)
+ plt.savefig(path+'/'+name+'.jpg',format='jpg')
+ plt.close(fig)
+
+
 
 def convplt(rmsposvec,tmvec,s,path,mod):
  xrms=rmsposvec[::2]

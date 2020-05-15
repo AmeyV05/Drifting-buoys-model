@@ -121,19 +121,19 @@ def body(Bnum,indexing,numtaps,Cor):
   errvel=np.column_stack((merr,rms,werr))
   #creating excel file
   simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel)
+  logging.info("Excel data file created for simulated data.")
+  # Fourier Transforms  
+  # Longitude
+  (tvec,xbres,xsres,arg_m2,arg_74,arg_79)=FTremMD(numtaps,Xib,Xis,tmplierinv)
+  gp.pltFT(path,"Longitude",xbres,xsres,tvec,arg_m2,arg_74,arg_79)
+  # Latitude
+  (tvec,ybres,ysres,arg_m2,arg_74,arg_79)=FTremMD(numtaps,Yib,Yis,tmplierinv)
+  gp.pltFT(path,"Latitude",ybres,ysres,tvec,arg_m2,arg_74,arg_79)
+  logging.info("Fourier Transforms plotted.")
   logging.info("Processing completed for buoy: "+ bname )
   # gf.logcopy(path)
   logging.shutdown()
 
-def poserrormodel(Xib,Yib,Xis,Yis,tmplierinv):
- Xis=Xis[::tmplierinv]
- Yis=Yis[::tmplierinv]
- print(len(Xis))
- print(len(Xib))
- dX=np.sqrt(((Xib - Xis) ** 2).mean())
- dY=np.sqrt(((Yib - Yis) ** 2).mean())
- rmspos=[dX,dY]
- return(rmspos)
 
 def simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel):
  fnp=['Coriolis','Ice thickness','x Air Velocity','y Air Velocity', 
@@ -175,8 +175,22 @@ def simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel):
  workbook.close()
 
 
-
-
+#getting FT by subracting the mean drift and obtaining tidal components for M2 and coriolis 
+def FTremMD(numtaps,Xib,Xis,tmplierinv):
+  Xis=Xis[::tmplierinv]
+  #filtering with lowpas filer
+  [Xbres,X1,xfilter]=gf.LPfilter (numtaps,Xib)
+  [Xsres,X1,xfilter]=gf.LPfilter (numtaps,Xis)
+  Nft=len(Xbres);dt=15*60.0 #time difference in observations
+  [xbres,fvec,tvec]=gf.FFT_signal(Xbres,Nft,dt)
+  [xsres,fvec,tvec]=gf.FFT_signal(Xsres,Nft,dt)
+  tvec=tvec/3600 #Period in hours
+  #computation of tidal and coriolis frequency arguments
+  M2=12.421 #M2 tidal frequency period
+  deg=74.7;deg1=79.  #latitude for coriolis
+  [arg_m2,arg_74,cori_period]= gf.TidCorio_comput(tvec,M2,deg)
+  [arg_m2,arg_79,cori_period1]= gf.TidCorio_comput(tvec,M2,deg1)
+  return(tvec,xbres,xsres,arg_m2,arg_74,arg_79)
 
 #code snippet for running convergence script for ice modelling.
 
