@@ -21,7 +21,7 @@ mod='RungeKutta2'
 def simulate(s,Bnum,indexing,Cor):
  [x0,times,PD]=im.initialisation(Bnum,indexing,s)
  Uavec=PD['Uavec']; Utvec=PD['Utvec']; Uovec=PD['Uovec'];Pgvec=PD['Pgvec'];Pgtvec=PD['Pgtvec']
- h=s['h']
+ ho=s['h'];trate=s['trate']
  Hivec=PD['Hivec']
  omega=s['omega']
  tmplier=s['tmplier']
@@ -29,7 +29,7 @@ def simulate(s,Bnum,indexing,Cor):
  Yis=lat=x0[1]
  x=x0 
  x[0]=x[1]=0 #initial values in SI unit assuming the starting latitude as 0m.
- results=np.zeros((len(x),len(times)))
+ results=np.zeros((len(x),len(times)));hvec=[]
  ti=0
  # loop
  for t in times:
@@ -51,6 +51,10 @@ def simulate(s,Bnum,indexing,Cor):
   # else:
   #   h=0.2
   # h=0.5
+  #ice thickness with thinning rate (trate) trate=0 for constat thickness 
+  if ((ti*tmplier)%1==0):
+    hvec=np.append(hvec,ho)
+    h=gf.thinrate(ho,trate);ho=h
   consts=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]
   consts=np.multiply(Cor,consts)
   if (mod=='ExplicitEuler'):
@@ -74,6 +78,7 @@ def simulate(s,Bnum,indexing,Cor):
  Uis=results[2,:]; Vis=results[3,:]
  # Nu=results[4,:]; Nv=results[5,:]
  Uisvec=np.column_stack((Uis,Vis))
+ PD['hvec']=hvec
  return(Xis,Yis,Uisvec,results,times,PD)
  
 def body(Bnum,indexing,numtaps,Cor):
@@ -86,8 +91,11 @@ def body(Bnum,indexing,numtaps,Cor):
   fedge=int(numtaps/2)
   logging.info("Model simulation started.")
   s=settings.settings()
-  # s['tmplier']=1/30
-  # s['dt'] = 15*s['tmplier']*s['minut
+  if Cor[1]!='v':
+    s['trate']=0
+    logging.info("Running with constant ice thickness.")
+  else:
+    Cor[1]=1
   if (mod=='ExplicitEuler'):
     logging.info("Using Explicit Euler for simulation.")
   else:
@@ -98,7 +106,7 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("Model Simulations done.")
   Xib=PD['Xib'][:-fedge+1]; Yib=PD['Yib'][:-fedge+1]
   Xibf=PD['Xibf']; Yibf=PD['Yibf']
-  Uibvec=PD['Uibvec']
+  Uibvec=PD['Uibvec'];hvec=PD['hvec']
   logging.info("Plotting started")
   gp.plticevel(Uisvec,Uibvec,tmplierinv,path)
   gp.plticepos(Xib,Yib,Xis,Yis,path)
@@ -120,14 +128,14 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("Weighted mean error in velocity is: "+str(werr))
   errvel=np.column_stack((merr,rms,werr))
   #creating excel file
-  simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel)
+  simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel)
   logging.info("Excel data file created for simulated data.")
   # Fourier Transforms  
   # Longitude
-  (tvec,xbres,xsres,arg_m2,arg_74,arg_79)=FTremMD(numtaps,Xib,Xis,tmplierinv)
+  (tvec,xbres,xsres,arg_m2,arg_74,arg_79)=gf.FTremMD(numtaps,Xib,Xis,tmplierinv)
   gp.pltFT(path,"Longitude",xbres,xsres,tvec,arg_m2,arg_74,arg_79)
   # Latitude
-  (tvec,ybres,ysres,arg_m2,arg_74,arg_79)=FTremMD(numtaps,Yib,Yis,tmplierinv)
+  (tvec,ybres,ysres,arg_m2,arg_74,arg_79)=gf.FTremMD(numtaps,Yib,Yis,tmplierinv)
   gp.pltFT(path,"Latitude",ybres,ysres,tvec,arg_m2,arg_74,arg_79)
   logging.info("Fourier Transforms plotted.")
   logging.info("Processing completed for buoy: "+ bname )
@@ -135,13 +143,14 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.shutdown()
 
 
-def simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel):
+def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel):
  fnp=['Coriolis','Ice thickness','x Air Velocity','y Air Velocity', 
      'x Tidal Velocity','y Tidal Velocity','x Ocean Velocity', 
      'y Ocean Velocity','x-PGs Ocean','y-PGs Ocean','x-PGs tides','y-PGs tides']
  writer = pd.ExcelWriter(path+'/simdata.xlsx', engine='xlsxwriter') 
  dfxis= pd.DataFrame({'Xis': Xis})
  dfyis= pd.DataFrame({'Yis': Yis})
+ dfh=pd.DataFrame({'Ice thickness':hvec})
  dfb=pd.DataFrame({bname:[]})
  dfe=pd.DataFrame({'Error statistics':[]})
  dff=pd.DataFrame({'Model F&P':fnp})
@@ -149,21 +158,26 @@ def simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel):
  dfep=pd.DataFrame({'Position': ['Mean Error','RMS Error','Weighted Mean Error']})
  dfepx=pd.DataFrame({'x': errpos[0,:]})
  dfepy=pd.DataFrame({'y': errpos[1,:]})
+ dfepa=pd.DataFrame({'absolute': errpos[2,:]})
  dfev=pd.DataFrame({'Velocity': ['Mean Error','RMS Error','Weighted Mean Error']})
  dfevx=pd.DataFrame({'x': errvel[0,:]})
  dfevy=pd.DataFrame({'y': errvel[1,:]})
+ dfeva=pd.DataFrame({'absolute': errvel[2,:]})
  dfb.to_excel(writer,'Sheet1',startcol=0,startrow=0,index=False)
  dfxis.to_excel(writer,'Sheet1', startcol=0,startrow=2,index=False)
  dfyis.to_excel(writer,'Sheet1', startcol=1,startrow=2,index=False)
+ dfh.to_excel(writer,'Sheet1', startcol=2,startrow=2,index=False)
  dfe.to_excel(writer,'Sheet1',startcol=6,startrow=4,index=False)
- dff.to_excel(writer,'Sheet1', startcol=3,startrow=2,index=False)
- dffv.to_excel(writer,'Sheet1',startcol=4,startrow=2,index=False)
- dfep.to_excel(writer,'Sheet1',startcol=6,startrow=5,index=False)
- dfepx.to_excel(writer,'Sheet1',startcol=7,startrow=5,index=False)
- dfepy.to_excel(writer,'Sheet1',startcol=8,startrow=5,index=False)
- dfev.to_excel(writer,'Sheet1',startcol=6,startrow=9,index=False)
- dfevx.to_excel(writer,'Sheet1',startcol=7,startrow=9,index=False)
- dfevy.to_excel(writer,'Sheet1',startcol=8,startrow=9,index=False)
+ dff.to_excel(writer,'Sheet1', startcol=6,startrow=2,index=False)
+ dffv.to_excel(writer,'Sheet1',startcol=7,startrow=2,index=False)
+ dfep.to_excel(writer,'Sheet1',startcol=9,startrow=5,index=False)
+ dfepx.to_excel(writer,'Sheet1',startcol=10,startrow=5,index=False)
+ dfepy.to_excel(writer,'Sheet1',startcol=11,startrow=5,index=False)
+ dfepa.to_excel(writer,'Sheet1',startcol=12,startrow=5,index=False)
+ dfev.to_excel(writer,'Sheet1',startcol=9,startrow=9,index=False)
+ dfevx.to_excel(writer,'Sheet1',startcol=10,startrow=9,index=False)
+ dfevy.to_excel(writer,'Sheet1',startcol=11,startrow=9,index=False)
+ dfeva.to_excel(writer,'Sheet1',startcol=12,startrow=9,index=False)
  workbook  = writer.book
  worksheet = writer.sheets['Sheet1']
  merge_format = workbook.add_format({
@@ -175,22 +189,7 @@ def simpost2excel(path,bname,Xis,Yis,Cornam,errpos,errvel):
  workbook.close()
 
 
-#getting FT by subracting the mean drift and obtaining tidal components for M2 and coriolis 
-def FTremMD(numtaps,Xib,Xis,tmplierinv):
-  Xis=Xis[::tmplierinv]
-  #filtering with lowpas filer
-  [Xbres,X1,xfilter]=gf.LPfilter (numtaps,Xib)
-  [Xsres,X1,xfilter]=gf.LPfilter (numtaps,Xis)
-  Nft=len(Xbres);dt=15*60.0 #time difference in observations
-  [xbres,fvec,tvec]=gf.FFT_signal(Xbres,Nft,dt)
-  [xsres,fvec,tvec]=gf.FFT_signal(Xsres,Nft,dt)
-  tvec=tvec/3600 #Period in hours
-  #computation of tidal and coriolis frequency arguments
-  M2=12.421 #M2 tidal frequency period
-  deg=74.7;deg1=79.  #latitude for coriolis
-  [arg_m2,arg_74,cori_period]= gf.TidCorio_comput(tvec,M2,deg)
-  [arg_m2,arg_79,cori_period1]= gf.TidCorio_comput(tvec,M2,deg1)
-  return(tvec,xbres,xsres,arg_m2,arg_74,arg_79)
+
 
 #code snippet for running convergence script for ice modelling.
 

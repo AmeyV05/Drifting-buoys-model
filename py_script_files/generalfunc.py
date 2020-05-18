@@ -210,14 +210,15 @@ def LPfilter (numtaps,p_x):
 def errstats(Xobs,Yobs,Xsim,Ysim,tmplierinv):
  Xsim=Xsim[::tmplierinv]
  Ysim=Ysim[::tmplierinv]
- dx=(Xobs - Xsim);dy=(Yobs - Ysim)
+ dx=(Xobs - Xsim);dy=(Yobs - Ysim);da=np.sqrt((dx**2+dy**2))
  #mean error
- merrx=dx.mean();merry=dy.mean()
- merr=[merrx,merry]
+ merrx=dx.mean();merry=dy.mean();merra=da.mean()
+ merr=[merrx,merry,merra]
  #rms error
  rmsx=np.sqrt((dx ** 2).mean())
  rmsy=np.sqrt((dy ** 2).mean())
- rms=[rmsx,rmsy]
+ rmsa=np.sqrt((da ** 2).mean())
+ rms=[rmsx,rmsy,rmsa]
  #weighted error
  N=len(dx)
  s=0;
@@ -226,7 +227,9 @@ def errstats(Xobs,Yobs,Xsim,Ysim,tmplierinv):
  s=0; 
  for i in range(N): s+=(N-i)*dy[i]
  werry=(1/(2*N*(N+1)))*s
- werr=[werrx,werry]
+ for i in range(N): s+=(N-i)*da[i]
+ werra=(1/(2*N*(N+1)))*s
+ werr=[werrx,werry,werra]
  return(merr,rms,werr)
 
 def Cordesfunc(Cor):
@@ -255,6 +258,31 @@ def Cordesfunc(Cor):
 #   shutil.copy(srfile,path+'/out.log')
 #   print("Log file available in: "+path)
 
+#getting FT by subracting the mean drift and obtaining tidal components for M2 and coriolis 
+def FTremMD(numtaps,Xib,Xis,tmplierinv):
+  Xis=Xis[::tmplierinv]
+  #filtering with lowpas filer
+  [Xbres,X1,xfilter]=LPfilter (numtaps,Xib)
+  [Xsres,X1,xfilter]=LPfilter (numtaps,Xis)
+  Nft=len(Xbres);dt=15*60.0 #time difference in observations
+  [xbres,fvec,tvec]=FFT_signal(Xbres,Nft,dt)
+  [xsres,fvec,tvec]=FFT_signal(Xsres,Nft,dt)
+  tvec=tvec/3600 #Period in hours
+  #computation of tidal and coriolis frequency arguments
+  M2=12.421 #M2 tidal frequency period
+  deg=74.7;deg1=79.  #latitude for coriolis
+  [arg_m2,arg_74,cori_period]= TidCorio_comput(tvec,M2,deg)
+  [arg_m2,arg_79,cori_period1]= TidCorio_comput(tvec,M2,deg1)
+  return(tvec,xbres,xsres,arg_m2,arg_74,arg_79)
+
+def thinrate(ho,trate):
+  dtobs=15*60
+  hn=ho+trate*dtobs
+  if hn<0.1:
+    logging.info("Error: Ice thickness decreasing to less than 0.1 ")
+    logging.info("Using constant ice thickness of 0.1m")
+    hn=0.1
+  return(hn)
 def  main(): # doesn't work anymore 
  Tib=[2,3,4]
  Utvec=np.zeros((4,2))

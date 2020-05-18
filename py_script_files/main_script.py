@@ -58,8 +58,8 @@ logging.info("Generally, first time users only do this operation.")
 ncdatcount=int(input("Type 1 if you want to read all the NC files and create .xlsx files. Else, any other number: "))
 
 # This describes which forces and parameters are included. 
-#cor=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]
-Cor=[1,1,1,1,1,1,1,1,1,1,1,1]
+#cor=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  #
+Cor=[1,'v',1,1,1,1,1,1,1,1,1,1]
 
 if (bcount!=1):
   #Getting buoy number input.
