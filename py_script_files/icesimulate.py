@@ -127,23 +127,26 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("RMS error in velocity is: "+str(rms))
   logging.info("Weighted mean error in velocity is: "+str(werr))
   errvel=np.column_stack((merr,rms,werr))
-  #creating excel file
-  simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel)
-  logging.info("Excel data file created for simulated data.")
   # Fourier Transforms  
   # Longitude
   (tvec,xbres,xsres,arg_m2,arg_74,arg_79)=gf.FTremMD(numtaps,Xib,Xis,tmplierinv)
   gp.pltFT(path,"Longitude",xbres,xsres,tvec,arg_m2,arg_74,arg_79)
+  errlon_FT=xbres[arg_m2]-xsres[arg_m2]
   # Latitude
   (tvec,ybres,ysres,arg_m2,arg_74,arg_79)=gf.FTremMD(numtaps,Yib,Yis,tmplierinv)
   gp.pltFT(path,"Latitude",ybres,ysres,tvec,arg_m2,arg_74,arg_79)
   logging.info("Fourier Transforms plotted.")
+  errlat_FT=ybres[arg_m2]-ysres[arg_m2]
+  err_ft=[errlon_FT,errlat_FT]
+  #creating excel file
+  simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft)
+  logging.info("Excel data file created for simulated data.")
   logging.info("Processing completed for buoy: "+ bname )
   # gf.logcopy(path)
   logging.shutdown()
 
 
-def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel):
+def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft):
  fnp=['Coriolis','Ice thickness','x Air Velocity','y Air Velocity', 
      'x Tidal Velocity','y Tidal Velocity','x Ocean Velocity', 
      'y Ocean Velocity','x-PGs Ocean','y-PGs Ocean','x-PGs tides','y-PGs tides']
@@ -163,11 +166,13 @@ def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel):
  dfevx=pd.DataFrame({'x': errvel[0,:]})
  dfevy=pd.DataFrame({'y': errvel[1,:]})
  dfeva=pd.DataFrame({'absolute': errvel[2,:]})
+ dfeft=pd.DataFrame({'Error FT': ['Longitude','Latitude']})
+ dfeftv=pd.DataFrame({'Value': err_ft})
  dfb.to_excel(writer,'Sheet1',startcol=0,startrow=0,index=False)
  dfxis.to_excel(writer,'Sheet1', startcol=0,startrow=2,index=False)
  dfyis.to_excel(writer,'Sheet1', startcol=1,startrow=2,index=False)
  dfh.to_excel(writer,'Sheet1', startcol=2,startrow=2,index=False)
- dfe.to_excel(writer,'Sheet1',startcol=6,startrow=4,index=False)
+ dfe.to_excel(writer,'Sheet1',startcol=9,startrow=4,index=False)
  dff.to_excel(writer,'Sheet1', startcol=6,startrow=2,index=False)
  dffv.to_excel(writer,'Sheet1',startcol=7,startrow=2,index=False)
  dfep.to_excel(writer,'Sheet1',startcol=9,startrow=5,index=False)
@@ -178,6 +183,8 @@ def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel):
  dfevx.to_excel(writer,'Sheet1',startcol=10,startrow=9,index=False)
  dfevy.to_excel(writer,'Sheet1',startcol=11,startrow=9,index=False)
  dfeva.to_excel(writer,'Sheet1',startcol=12,startrow=9,index=False)
+ dfeft.to_excel(writer,'Sheet1',startcol=9,startrow=14,index=False)
+ dfeftv.to_excel(writer,'Sheet1',startcol=10,startrow=14,index=False)
  workbook  = writer.book
  worksheet = writer.sheets['Sheet1']
  merge_format = workbook.add_format({
