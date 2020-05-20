@@ -18,13 +18,13 @@ def settings():
  s['thetaa'] = 0*s['deg2rad']#angle made by geostrophic wind with ice velocity.
  s['thetaw'] = 0*s['deg2rad']
  s['omega']  = (2.0*np.pi)/(24.0*s['hours'])
- s['tmplier']=1/15
+ s['tmplier']=1/30
  s['dt'] = 15*s['tmplier']*s['minutes']
  s['iCa']=1.2e-03
  s['iCw']=5.5e-03
  s['Nu0']=0
  s['Nv0']=0
- s['h']=1
+ s['h']=0.8
  s['trate']=-2.2e-07
  s['l']=0
  s['n']=4 #number of elements of model state vector.

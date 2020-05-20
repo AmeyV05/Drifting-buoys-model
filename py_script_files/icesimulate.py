@@ -150,7 +150,7 @@ def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft):
  fnp=['Coriolis','Ice thickness','x Air Velocity','y Air Velocity', 
      'x Tidal Velocity','y Tidal Velocity','x Ocean Velocity', 
      'y Ocean Velocity','x-PGs Ocean','y-PGs Ocean','x-PGs tides','y-PGs tides']
- writer = pd.ExcelWriter(path+'/simdata.xlsx', engine='xlsxwriter') 
+ writer = pd.ExcelWriter(path+'/simdata_'+bname+'.xlsx', engine='xlsxwriter') 
  dfxis= pd.DataFrame({'Xis': Xis})
  dfyis= pd.DataFrame({'Yis': Yis})
  dfh=pd.DataFrame({'Ice thickness':hvec})
