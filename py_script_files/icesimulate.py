@@ -91,16 +91,20 @@ def body(Bnum,indexing,numtaps,Cor):
   fedge=int(numtaps/2)
   logging.info("Model simulation started.")
   s=settings.settings()
+  Corn=[]
   if Cor[1]!='v':
+    Corn=Cor
     s['trate']=0
     logging.info("Running with constant ice thickness.")
   else:
-    Cor[1]=1
+    Corn=Cor[:]
+    Corn[1]=1
   if (mod=='ExplicitEuler'):
     logging.info("Using Explicit Euler for simulation.")
   else:
     logging.info("Using Runge Kutta 2 for simulation.")
-  [Xis,Yis,Uisvec,results,times,PD]=simulate(s,Bnum,indexing,Cor)
+
+  [Xis,Yis,Uisvec,results,times,PD]=simulate(s,Bnum,indexing,Corn)
 
   tmplierinv=int(1/s['tmplier']) 
   logging.info("Model Simulations done.")
@@ -111,8 +115,7 @@ def body(Bnum,indexing,numtaps,Cor):
   gp.plticevel(Uisvec,Uibvec,tmplierinv,path)
   gp.plticepos(Xib,Yib,Xis,Yis,path)
   logging.info("Plotting completed. Files available in:" +path)
-  #error statistics
-  
+  #error statistics  
   #pos error stats
   (merr,rms,werr)=gf.errstats(Xib,Yib,Xis,Yis,tmplierinv)
   logging.info("Mean error in position is: "+str(merr))

@@ -25,7 +25,7 @@ def settings():
  s['Nu0']=0
  s['Nv0']=0
  s['h']=0.8
- s['trate']=-2.2e-07
+ s['trate']=-1.1e-07
  s['l']=0
  s['n']=4 #number of elements of model state vector.
  s['en']=s['n']+2*(1+s['l']*int(1/s['tmplier'])) #number of elements of extended state vector +2 is for Nu and Nv
