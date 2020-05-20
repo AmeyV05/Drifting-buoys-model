@@ -25,7 +25,7 @@ console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 # add the handler to the root logger
 logging.getLogger('').addHandler(console)
-
+logging.disable(logging.DEBUG)
 
 #indexing for different dates and times based on available buoy data.
 switcher={
@@ -59,39 +59,41 @@ ncdatcount=int(input("Type 1 if you want to read all the NC files and create .xl
 
 # This describes which forces and parameters are included. 
 #cor=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  #
-Cor=[1,'v',1,1,1,1,1,1,1,1,1,1]
+Cor=[1,1,1,1,1,1,1,1,1,1,1,1]
+param=[1]
+for i in range(len(param)):
+	Cor[0]=param[i]
+	if (bcount!=1):
+	  #Getting buoy number input.
+	  Bnum=input("Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter: ")
+	  logging.info("Running for: Buoy_"+Bnum)
+	  indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
+	  if (ncdatcount==1):
+	    logging.info("Running the script for reading all the .NC data files.")
+	    #Define nc file locations
+	    if os.path.isdir('../../container/Data_from_models'):
+	      fileloc="../../container/Data_from_models"
+	    else:
+	      fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
+	    FD=rdnc.readingalldata(fileloc)
+	    ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
+	  isim.body(Bnum,indexing,numtaps,Cor)
 
-if (bcount!=1):
-  #Getting buoy number input.
-  Bnum=input("Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter: ")
-  logging.info("Running for: Buoy_"+Bnum)
-  indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
-  if (ncdatcount==1):
-    logging.info("Running the script for reading all the .NC data files.")
-    #Define nc file locations
-    if os.path.isdir('../../container/Data_from_models'):
-      fileloc="../../container/Data_from_models"
-    else:
-      fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
-    FD=rdnc.readingalldata(fileloc)
-    ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
-  isim.body(Bnum,indexing,numtaps,Cor)
-
-else:
-  for i in switcher:
-    Bnum=i
-    logging.info("Running for: Buoy_"+Bnum)
-    indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
-    if (ncdatcount==1):
-      logging.info("Running the script for reading all the .NC data files.")
-      #Define nc file locations
-      if os.path.isdir('../../container/Data_from_models'):
-        fileloc="../../container/Data_from_models"
-      else:
-        fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
-      FD=rdnc.readingalldata(fileloc)
-      ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
-    isim.body(Bnum,indexing,numtaps,Cor)
+	else:
+	  for i in switcher:
+	    Bnum=i
+	    logging.info("Running for: Buoy_"+Bnum)
+	    indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
+	    if (ncdatcount==1):
+	      logging.info("Running the script for reading all the .NC data files.")
+	      #Define nc file locations
+	      if os.path.isdir('../../container/Data_from_models'):
+	        fileloc="../../container/Data_from_models"
+	      else:
+	        fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
+	      FD=rdnc.readingalldata(fileloc)
+	      ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
+	    isim.body(Bnum,indexing,numtaps,Cor)
 
 
 

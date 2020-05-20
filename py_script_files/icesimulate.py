@@ -142,7 +142,7 @@ def body(Bnum,indexing,numtaps,Cor):
   simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft)
   logging.info("Excel data file created for simulated data.")
   logging.info("Processing completed for buoy: "+ bname )
-  # gf.logcopy(path)
+  gf.logcopy(path)
   logging.shutdown()
 
 

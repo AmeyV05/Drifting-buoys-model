@@ -10,6 +10,7 @@ import pandas as pd
 import math
 import shutil
 import os
+import settings
 deg2rad= np.pi/180.0
 # A conversion function to convert the latitudes and longitudes to meteres.
 # note that this is a simple conversion formula and not very accurate
@@ -235,8 +236,9 @@ def errstats(Xobs,Yobs,Xsim,Ysim,tmplierinv):
 def Cordesfunc(Cor):
   #this function gives an output string array
   #which describes the forces and parameters of the simulations.
+  s=settings.settings()
   f='Yes' if Cor[0]==1 else 'No' #Coriolis 
-  h=str(Cor[1]) #ice thickness
+  h=str(Cor[1])+"_"+str(s['trate']) if Cor[1]=='v' else str(Cor[1]) #ice thickness
   Uax='Yes' if Cor[2]==1 else 'No' #wind stresss
   Uay=Uax
   Utx='Yes' if Cor[4]==1 else 'No' #Tidal stress
@@ -251,12 +253,17 @@ def Cordesfunc(Cor):
   #Folder name for storing the data.
   folname='h'+str(Cor[1])+'f'+str(Cor[0])+ \
           'A'+str(Cor[2])+'T'+str(Cor[4])+ \
+          'O'+str(Cor[6])+'P'+str(Cor[8]) if Cor[1]!='v' else \
+          'h'+str(Cor[1])+str(s['trate'])[1:4]+'f'+str(Cor[0])+ \
+          'A'+str(Cor[2])+'T'+str(Cor[4])+ \
           'O'+str(Cor[6])+'P'+str(Cor[8])
   return(Cornam,folname)
-# def logcopy(path):
-#   srfile='../generated_data/out.log'
-#   shutil.copy(srfile,path+'/out.log')
-#   print("Log file available in: "+path)
+
+#function to copy the log file to the folder of simulations.
+def logcopy(path):
+  srfile='../../generated_data/out.log'
+  shutil.copy(srfile,path+'/out.log')
+  print("Log file available in: "+path)
 
 #getting FT by subracting the mean drift and obtaining tidal components for M2 and coriolis 
 def FTremMD(numtaps,Xib,Xis,tmplierinv):
