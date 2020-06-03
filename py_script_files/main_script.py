@@ -59,10 +59,11 @@ ncdatcount=int(input("Type 1 if you want to read all the NC files and create .xl
 
 # This describes which forces and parameters are included. 
 #cor=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  #
-Cor=[1,'v',1,1,1,1,1,1,1,1,1,1]
-param=[1]
+Cor=[1,1,1,1,1,1,1,1,1,1,1,1]
+param=[1,0.8,0.5,0.2,0.1]
+# param=[0.5]
 for i in range(len(param)):
-	Cor[0]=param[i]
+	Cor[1]=param[i]
 	if (bcount!=1):
 	  #Getting buoy number input.
 	  Bnum=input("Please input the Buoy number from the list: [02, 03, 07, 09, 12, 13, 14, 16]. And press enter: ")

@@ -84,17 +84,22 @@ def pltalpha(alpha,path,name):
  plt.savefig(path+'/'+name+'.jpg',format='jpg')
  plt.close(fig)
 
-def pltFT(path,name,xb,xs,tvec,arg_m2,arg_74,arg_79):
+def pltFT(path,name,xb,xs,tvec,arg_tide,arg_cor):
  fig=plt.figure(figsize=(12,7),frameon=True)
- plt.plot(tvec,xb,label=name+"_obs")
- plt.plot(tvec,xs,label=name+"_sim")
- tidelab="M2";corlab="Coriolis_74.7";corlab2="Coriolis_79"
- plt.axvline(tvec[arg_m2], linewidth=1, color='r', linestyle='dashed',label=tidelab)
- plt.axvline(tvec[arg_74], linewidth=1, color='g', linestyle='dashed',label=corlab)
- plt.axvline(tvec[arg_79], linewidth=1, color='y', linestyle='dashed',label=corlab2)
+ plt.plot(tvec,xb,color='r',label=name+"_obs")
+ plt.plot(tvec,xs,color='g',label=name+"_sim")
+ argdeg1=arg_cor['argdeg1'];argdeg2=arg_cor['argdeg2']
+ plt.axvline(tvec[arg_tide['M2']],color='m', linewidth=1, linestyle='dashed',label='M2')
+ plt.axvline(tvec[arg_tide['S2']],color='y',  linewidth=1, linestyle='dashed',label='S2')
+ plt.axvline(tvec[arg_tide['MU2']],color='g',  linewidth=1, linestyle='dashed',label='MU2')
+ plt.axvline(tvec[arg_tide['O1']],color='orange',  linewidth=1,  linestyle='dashed',label='O1')
+ plt.axvline(tvec[arg_tide['K1']],color='blue',  linewidth=1,  linestyle='dashed',label='K1')
+ plt.axvline(tvec[arg_tide['M4']],color='teal',  linewidth=1,  linestyle='dashed',label='M4')
+ plt.axvline(tvec[argdeg1],color='olive',  linewidth=1, linestyle='dashed',label='74.7')
+ plt.axvline(tvec[argdeg2], color='cyan', linewidth=1, linestyle='dashed',label='79')
  plt.xlabel('Period[h]')
  plt.ylabel('Amplitude')
- plt.xlim([10,15])
+ plt.xlim([5,26])
  plt.legend(loc=1)
  plt.savefig(path+'/'+name+'.jpg',format='jpg')
  plt.close(fig)

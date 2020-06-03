@@ -24,7 +24,7 @@ def settings():
  s['iCw']=5.5e-03
  s['Nu0']=0
  s['Nv0']=0
- s['h']=0.8
+ s['h']=1
  s['trate']=-1.1e-07
  s['l']=0
  s['n']=4 #number of elements of model state vector.

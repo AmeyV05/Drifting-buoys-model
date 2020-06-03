@@ -50,7 +50,7 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
     #interpolating the u and v velocities to the buoy locations.
     Buoy_Xi=Xib #buoy longitude in hourly basis (x position)
     Buoy_Yi=Yib
-    Ut=[];Vt=[];SSHt=[]
+    Ut=[];Vt=[];Pgxt=[];Pgyt=[]
     for i in range(arrlen):
         ut_time=ut[i,:];vt_time=vt[i,:];ssht_time=ssht[i,:]
         xk=Buoy_Xi[i];yk=Buoy_Yi[i]
@@ -72,30 +72,14 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
         #creating tides at buoy locations
         Ut=np.append(Ut,uinterp(Buoy_Xi[i],Buoy_Yi[i]))
         Vt=np.append(Vt,vinterp(Buoy_Xi[i],Buoy_Yi[i]))
-        SSHt=np.append(SSHt,sshinterp(Buoy_Xi[i],Buoy_Yi[i]))
-    # computing the ssh gradients on the buoy locations. 
-    logging.info("Computing ssh gradients for tidal sshs.")
-    Pgxt=[];Pgyt=[];dlatvec=dlonvec=dzettvec=[]
-    Pgxt=np.append(Pgxt,0);Pgyt=np.append(Pgyt,0)
-    for i in range(arrlen-1):
-        dzett=SSHt[i+1]-SSHt[i]
-        dzettvec=np.append(dzettvec,dzett)
-        lat=Buoy_Yi[i]
-        dlat=Buoy_Yi[i+1]-Buoy_Yi[i]
-        dlatvec=np.append(dlatvec,dlat)
-        dlon=Buoy_Xi[i+1]-Buoy_Xi[i]
-        dlonvec=np.append(dlonvec,dlon)
+        #computation of gradient
+        lat=Buoy_Yi[i];dlon=0.02;dlat=0.01
+        dzx=sshinterp(Buoy_Xi[i]+dlon,Buoy_Yi[i])-sshinterp(Buoy_Xi[i],Buoy_Yi[i])
+        dzy=sshinterp(Buoy_Xi[i],Buoy_Yi[i]+dlat)-sshinterp(Buoy_Xi[i],Buoy_Yi[i])
         (dy,dx)=gf.latlon2meters(lat,dlat,dlon)
-        dy1=abs(dy);dx1=abs(dx)
-        if dy1<=1e-25 and dx1>=1e-25 :
-            dzdy=0;dzdx=dzett/dx
-        elif dy1>=1e-25 and dx1<=1e-25 :
-            dzdy=dzett/dy;dzdx=0
-        elif dy1<=1e-25 and dx1<=1e-25 :
-            dy=0;dzdx=0
-        else:
-            dzdx=dzett/dx;dzdy=dzett/dy
+        dzdx=dzx/dx;dzdy=dzy/dy
         Pgxt=np.append(Pgxt,dzdx);Pgyt=np.append(Pgyt,dzdy)
+
     logging.info("Tidal ssh gradients computation done.")        
     logging.info("Interpolation successfully done. Processing complete for GTSM data.")
    

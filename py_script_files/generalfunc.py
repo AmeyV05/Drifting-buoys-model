@@ -11,6 +11,7 @@ import math
 import shutil
 import os
 import settings
+import logging
 deg2rad= np.pi/180.0
 # A conversion function to convert the latitudes and longitudes to meteres.
 # note that this is a simple conversion formula and not very accurate
@@ -187,14 +188,24 @@ def FFT_signal(y,N,ts):
     return(Y_plot,fvec,tvec)
 
 
-def TidCorio_comput(tvec,M2,deg):  
+def TidCorio_comput(tvec,tide,Cordeg): 
+    deg1=Cordeg['deg1'];deg2=Cordeg['deg2'] 
     #coriolis frequ
-    phi=np.deg2rad(deg)
-    coriolis=(2*2*np.pi*np.sin(phi))/(86164.09/3600)
-    cori_period=2*np.pi/coriolis
-    arg_m2 = (np.abs(tvec-M2)).argmin()
-    arg_cor=(np.abs(tvec-cori_period)).argmin()
-    return(arg_m2,arg_cor,cori_period)
+    phi1=np.deg2rad(deg1);phi2=np.deg2rad(deg2)
+    coriolis=(2*2*np.pi)/(86164.09/3600)
+    corperd1=2*np.pi/(coriolis*np.sin(phi1))
+    corperd2=2*np.pi/(coriolis*np.sin(phi2))
+    arg_deg1=(np.abs(tvec-corperd1)).argmin()
+    arg_deg2=(np.abs(tvec-corperd2)).argmin()
+    arg_cor={'argdeg1':arg_deg1,'argdeg2':arg_deg2}
+    arg_m2 = (np.abs(tvec-tide['M2'])).argmin()
+    arg_s2 = (np.abs(tvec-tide['S2'])).argmin()
+    arg_mu2 = (np.abs(tvec-tide['MU2'])).argmin()
+    arg_o1 = (np.abs(tvec-tide['O1'])).argmin()
+    arg_k1 = (np.abs(tvec-tide['K1'])).argmin()
+    arg_m4 = (np.abs(tvec-tide['M4'])).argmin()
+    arg_tide={'M2':arg_m2,'S2':arg_s2,'MU2':arg_mu2,'O1':arg_o1,'K1':arg_k1,'M4':arg_m4}
+    return(arg_tide,arg_cor)
 
 def LPfilter (numtaps,p_x):     
     window=signal.hamming(numtaps)
@@ -233,12 +244,11 @@ def errstats(Xobs,Yobs,Xsim,Ysim,tmplierinv):
  werr=[werrx,werry,werra]
  return(merr,rms,werr)
 
-def Cordesfunc(Cor):
+def Cordesfunc(Cor,trate,hs):
   #this function gives an output string array
   #which describes the forces and parameters of the simulations.
-  s=settings.settings()
   f='Yes' if Cor[0]==1 else 'No' #Coriolis 
-  h=str(Cor[1])+"_"+str(s['trate']) if Cor[1]=='v' else str(Cor[1]) #ice thickness
+  h=str(hs)+str(Cor[1])+"_"+str(trate) if Cor[1]=='v' else str(Cor[1]) #ice thickness
   Uax='Yes' if Cor[2]==1 else 'No' #wind stresss
   Uay=Uax
   Utx='Yes' if Cor[4]==1 else 'No' #Tidal stress
@@ -247,16 +257,16 @@ def Cordesfunc(Cor):
   Uoy=Uox
   Pgxo='Yes' if Cor[8]==1 else 'No' #pressure gradients
   Pgyo=Pgxo
-  Pgxt='Yes' if Cor[10]==1 else 'No' #pressure gradients
+  Pgxt='Yes' if Cor[10]==1 else 'No' #pressure gradients tides
   Pgyt=Pgxt
   Cornam=[f,h,Uax,Uay,Utx,Uty,Uox,Uoy,Pgxo,Pgyo,Pgxt,Pgyt]
   #Folder name for storing the data.
   folname='h'+str(Cor[1])+'f'+str(Cor[0])+ \
           'A'+str(Cor[2])+'T'+str(Cor[4])+ \
-          'O'+str(Cor[6])+'P'+str(Cor[8]) if Cor[1]!='v' else \
-          'h'+str(Cor[1])+str(s['trate'])[1:4]+'f'+str(Cor[0])+ \
+          'O'+str(Cor[6])+'Po'+str(Cor[8])+'Pt'+str(Cor[10]) if Cor[1]!='v' else \
+          'h'+str(hs)+str(Cor[1])+str(trate)[1:4]+'f'+str(Cor[0])+ \
           'A'+str(Cor[2])+'T'+str(Cor[4])+ \
-          'O'+str(Cor[6])+'P'+str(Cor[8])
+          'O'+str(Cor[6])+'Po'+str(Cor[8])+'Pt'+str(Cor[10])
   return(Cornam,folname)
 
 #function to copy the log file to the folder of simulations.
@@ -276,19 +286,29 @@ def FTremMD(numtaps,Xib,Xis,tmplierinv):
   [xsres,fvec,tvec]=FFT_signal(Xsres,Nft,dt)
   tvec=tvec/3600 #Period in hours
   #computation of tidal and coriolis frequency arguments
-  M2=12.421 #M2 tidal frequency period
-  deg=74.7;deg1=79.  #latitude for coriolis
-  [arg_m2,arg_74,cori_period]= TidCorio_comput(tvec,M2,deg)
-  [arg_m2,arg_79,cori_period1]= TidCorio_comput(tvec,M2,deg1)
-  return(tvec,xbres,xsres,arg_m2,arg_74,arg_79)
+  tide={'M2':12.421,'S2':12.,'MU2':12.871,'O1':25.819,'K1':23.934,'M4':6.2103}
+  Cordeg={'deg1':74.7,'deg2':79}  #latitude for coriolis
+  [arg_tide,arg_cor]= TidCorio_comput(tvec,tide,Cordeg)
+  errftvec=errorFT(xbres,xsres,arg_tide)
+  return(tvec,xbres,xsres,arg_tide,arg_cor,errftvec)
+
+def errorFT(xbres,xsres,arg_tide):
+  errM2=xbres[arg_tide['M2']]
+  errS2=xbres[arg_tide['S2']]
+  errMU2=xbres[arg_tide['MU2']]
+  errO1=xbres[arg_tide['O1']]
+  errK1=xbres[arg_tide['K1']]
+  errM4=xbres[arg_tide['M4']]
+  errftvec=[errM2,errS2,errMU2,errO1,errK1,errM4]
+  return(errftvec)
 
 def thinrate(ho,trate):
   dtobs=15*60
   hn=ho+trate*dtobs
-  if hn<0.1:
+  if hn<0.05:
     logging.info("Error: Ice thickness decreasing to less than 0.1 ")
     logging.info("Using constant ice thickness of 0.1m")
-    hn=0.1
+    hn=0.05
   return(hn)
 def  main(): # doesn't work anymore 
  Tib=[2,3,4]

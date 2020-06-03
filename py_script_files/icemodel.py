@@ -79,6 +79,7 @@ def modelFx(x,consts,s):
  rho_air=s['rho_air']
  rho_ice=s['rho_ice']
  [f, h, Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt] =consts
+ # print("h="+str(consts[1]))
  [xc,yc,u,v] = x
  Cwi=s['iCw'];Cai=s['iCa']
  #transformation for rotation of Ua
@@ -103,9 +104,9 @@ def modelFx(x,consts,s):
  Fx=np.zeros(N)
  Fx[0]=u;Fx[1]=v
  Fx[2]=((Cwi*rho_water*Uw*u_mag + 
-         Cai*rho_air*Ua*Ua_mag)/(rho_ice*h)+((f*v)))-g*Pgx # -g*Pgxt
+         Cai*rho_air*Ua*Ua_mag)/(rho_ice*h)+((f*v)))-g*Pgx -g*Pgxt
  Fx[3]=((Cwi*rho_water*Vw*u_mag+
-         Cai*rho_air*Va*Ua_mag)/(rho_ice*h)-((f*u)))-g*Pgy #-g*Pgyt
+         Cai*rho_air*Va*Ua_mag)/(rho_ice*h)-((f*u)))-g*Pgy -g*Pgyt
  #linear shear stress model
  # Fx[2]=((Cwi*rho_water*Uw +
  #         Cai*rho_air*Ua)/(rho_ice*h)+((f*v))) -g*Pgx

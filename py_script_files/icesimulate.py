@@ -53,8 +53,8 @@ def simulate(s,Bnum,indexing,Cor):
   # h=0.5
   #ice thickness with thinning rate (trate) trate=0 for constat thickness 
   if ((ti*tmplier)%1==0):
-    hvec=np.append(hvec,ho)
-    h=gf.thinrate(ho,trate);ho=h
+    h=gf.thinrate(ho,trate)
+    hvec=np.append(hvec,h*Cor[1]);ho=h
   consts=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]
   consts=np.multiply(Cor,consts)
   if (mod=='ExplicitEuler'):
@@ -85,12 +85,13 @@ def body(Bnum,indexing,numtaps,Cor):
   prefix="BUOY_"
   bname=prefix+Bnum
   path = "../../generated_data/"+bname
-  (Cornam,folname)=gf.Cordesfunc(Cor)
+  s=settings.settings()
+  h=s['h'];trate=s['trate']
+  (Cornam,folname)=gf.Cordesfunc(Cor,trate,h)
   path=path+'/'+folname
   gf.mkdir_p(path)
   fedge=int(numtaps/2)
   logging.info("Model simulation started.")
-  s=settings.settings()
   Corn=[]
   if Cor[1]!='v':
     Corn=Cor
@@ -132,15 +133,16 @@ def body(Bnum,indexing,numtaps,Cor):
   errvel=np.column_stack((merr,rms,werr))
   # Fourier Transforms  
   # Longitude
-  (tvec,xbres,xsres,arg_m2,arg_74,arg_79)=gf.FTremMD(numtaps,Xib,Xis,tmplierinv)
-  gp.pltFT(path,"Longitude",xbres,xsres,tvec,arg_m2,arg_74,arg_79)
-  errlon_FT=xbres[arg_m2]-xsres[arg_m2]
+  (tvec,xbres,xsres,arg_tide,arg_cor,errftveclon)=gf.FTremMD(numtaps,Xib,Xis,tmplierinv)
+  gp.pltFT(path,"Longitude",xbres,xsres,tvec,arg_tide,arg_cor)
+  # error computations
+
   # Latitude
-  (tvec,ybres,ysres,arg_m2,arg_74,arg_79)=gf.FTremMD(numtaps,Yib,Yis,tmplierinv)
-  gp.pltFT(path,"Latitude",ybres,ysres,tvec,arg_m2,arg_74,arg_79)
+  (tvec,ybres,ysres,arg_tide,arg_cor,errftveclat)=gf.FTremMD(numtaps,Yib,Yis,tmplierinv)
+  gp.pltFT(path,"Latitude",ybres,ysres,tvec,arg_tide,arg_cor)
   logging.info("Fourier Transforms plotted.")
-  errlat_FT=ybres[arg_m2]-ysres[arg_m2]
-  err_ft=[errlon_FT,errlat_FT]
+  err_ft=np.row_stack((errftveclon,errftveclat))
+
   #creating excel file
   simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft)
   logging.info("Excel data file created for simulated data.")
@@ -169,8 +171,9 @@ def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft):
  dfevx=pd.DataFrame({'x': errvel[0,:]})
  dfevy=pd.DataFrame({'y': errvel[1,:]})
  dfeva=pd.DataFrame({'absolute': errvel[2,:]})
- dfeft=pd.DataFrame({'Error FT': ['Longitude','Latitude']})
- dfeftv=pd.DataFrame({'Value': err_ft})
+ dfeft=pd.DataFrame({'Error_tide': ['M2','S2','MU2','O1','K1','M4']})
+ dfeftlo=pd.DataFrame({'Longitude': err_ft[0,:]})
+ dfeftla=pd.DataFrame({'Latitude': err_ft[1,:]})
  dfb.to_excel(writer,'Sheet1',startcol=0,startrow=0,index=False)
  dfxis.to_excel(writer,'Sheet1', startcol=0,startrow=2,index=False)
  dfyis.to_excel(writer,'Sheet1', startcol=1,startrow=2,index=False)
@@ -187,7 +190,8 @@ def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft):
  dfevy.to_excel(writer,'Sheet1',startcol=11,startrow=9,index=False)
  dfeva.to_excel(writer,'Sheet1',startcol=12,startrow=9,index=False)
  dfeft.to_excel(writer,'Sheet1',startcol=9,startrow=14,index=False)
- dfeftv.to_excel(writer,'Sheet1',startcol=10,startrow=14,index=False)
+ dfeftlo.to_excel(writer,'Sheet1',startcol=10,startrow=14,index=False)
+ dfeftla.to_excel(writer,'Sheet1',startcol=11,startrow=14,index=False)
  workbook  = writer.book
  worksheet = writer.sheets['Sheet1']
  merge_format = workbook.add_format({
