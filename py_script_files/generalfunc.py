@@ -172,20 +172,23 @@ def index2time(indexing):
 
 #subroutine for FFT 
 def FFT_signal(y,N,ts):
-    Y=abs(np.fft.fft(y))/N
+    Yamp=abs(np.fft.fft(y))/N
+    Ypha=np.angle(np.fft.fft(y),deg=True)
     if (N%2==1):
         N1=int((N-1)/2)
-        Y_plot=Y[:N1]
+        Yampplt=Yamp[:N1]
+        Yphaplt=Ypha[:N1]
     else:
         N1=int((N/2))
-        Y_plot=Y[:N1]
+        Yampplt=Yamp[:N1]
+        Yphaplt=Ypha[:N1]
     #sampling frequency
     fs=1/ts #ts is sampling time in seconds
     f_nq=fs/2 #Nyquist frequency (Fmax)
     fvec=np.linspace(0,f_nq,N1)
     tvec=1/fvec[1:]
     tvec=np.append(np.inf,tvec)
-    return(Y_plot,fvec,tvec)
+    return(Yampplt,Yphaplt,fvec,tvec)
 
 
 def TidCorio_comput(tvec,tide,Cordeg): 
@@ -282,23 +285,26 @@ def FTremMD(numtaps,Xib,Xis,tmplierinv):
   [Xbres,X1,xfilter]=LPfilter (numtaps,Xib)
   [Xsres,X1,xfilter]=LPfilter (numtaps,Xis)
   Nft=len(Xbres);dt=15*60.0 #time difference in observations
-  [xbres,fvec,tvec]=FFT_signal(Xbres,Nft,dt)
-  [xsres,fvec,tvec]=FFT_signal(Xsres,Nft,dt)
+  [xbamres,xbphres,fvec,tvec]=FFT_signal(Xbres,Nft,dt) 
+  [xsamres,xsphres,fvec,tvec]=FFT_signal(Xsres,Nft,dt)
   tvec=tvec/3600 #Period in hours
   #computation of tidal and coriolis frequency arguments
   tide={'M2':12.421,'S2':12.,'MU2':12.871,'O1':25.819,'K1':23.934,'M4':6.2103}
   Cordeg={'deg1':74.7,'deg2':79}  #latitude for coriolis
   [arg_tide,arg_cor]= TidCorio_comput(tvec,tide,Cordeg)
-  errftvec=errorFT(xbres,xsres,arg_tide)
-  return(tvec,xbres,xsres,arg_tide,arg_cor,errftvec)
+  errftam=errorFT(xbamres,xsamres,arg_tide)
+  errftph=errorFT(xbphres,xsphres,arg_tide)
+  xbres=np.row_stack((xbamres,xbphres))
+  xsres=np.row_stack((xsamres,xsphres))
+  return(tvec,xbres,xsres,arg_tide,arg_cor,errftam,errftph)
 
 def errorFT(xbres,xsres,arg_tide):
-  errM2=xbres[arg_tide['M2']]
-  errS2=xbres[arg_tide['S2']]
-  errMU2=xbres[arg_tide['MU2']]
-  errO1=xbres[arg_tide['O1']]
-  errK1=xbres[arg_tide['K1']]
-  errM4=xbres[arg_tide['M4']]
+  errM2=xbres[arg_tide['M2']]-xsres[arg_tide['M2']]
+  errS2=xbres[arg_tide['S2']]-xsres[arg_tide['S2']]
+  errMU2=xbres[arg_tide['MU2']]-xsres[arg_tide['MU2']]
+  errO1=xbres[arg_tide['O1']]-xsres[arg_tide['O1']]
+  errK1=xbres[arg_tide['K1']]-xsres[arg_tide['K1']]
+  errM4=xbres[arg_tide['M4']]-xsres[arg_tide['M4']]
   errftvec=[errM2,errS2,errMU2,errO1,errK1,errM4]
   return(errftvec)
 

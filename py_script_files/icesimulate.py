@@ -132,17 +132,16 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("Weighted mean error in velocity is: "+str(werr))
   errvel=np.column_stack((merr,rms,werr))
   # Fourier Transforms  
-  # Longitude
-  (tvec,xbres,xsres,arg_tide,arg_cor,errftveclon)=gf.FTremMD(numtaps,Xib,Xis,tmplierinv)
+  # Longitude  
+  (tvec,xbres,xsres,arg_tide,arg_cor,errftamlon,errftphlon)=gf.FTremMD(numtaps,Xib,Xis,tmplierinv)
   gp.pltFT(path,"Longitude",xbres,xsres,tvec,arg_tide,arg_cor)
   # error computations
 
   # Latitude
-  (tvec,ybres,ysres,arg_tide,arg_cor,errftveclat)=gf.FTremMD(numtaps,Yib,Yis,tmplierinv)
+  (tvec,ybres,ysres,arg_tide,arg_cor,errftamlat,errftphlat)=gf.FTremMD(numtaps,Yib,Yis,tmplierinv)
   gp.pltFT(path,"Latitude",ybres,ysres,tvec,arg_tide,arg_cor)
   logging.info("Fourier Transforms plotted.")
-  err_ft=np.row_stack((errftveclon,errftveclat))
-
+  err_ft=np.row_stack((errftamlon,errftamlat,errftphlon,errftphlat))
   #creating excel file
   simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft)
   logging.info("Excel data file created for simulated data.")
@@ -172,8 +171,10 @@ def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft):
  dfevy=pd.DataFrame({'y': errvel[1,:]})
  dfeva=pd.DataFrame({'absolute': errvel[2,:]})
  dfeft=pd.DataFrame({'Error_tide': ['M2','S2','MU2','O1','K1','M4']})
- dfeftlo=pd.DataFrame({'Longitude': err_ft[0,:]})
- dfeftla=pd.DataFrame({'Latitude': err_ft[1,:]})
+ dfeftlo=pd.DataFrame({'Lon_amp': err_ft[0,:]})
+ dfeftla=pd.DataFrame({'Lat_amp': err_ft[1,:]})
+ dfeftphlo=pd.DataFrame({'Lon_ph': err_ft[2,:]})
+ dfeftphla=pd.DataFrame({'Lat_ph': err_ft[3,:]})
  dfb.to_excel(writer,'Sheet1',startcol=0,startrow=0,index=False)
  dfxis.to_excel(writer,'Sheet1', startcol=0,startrow=2,index=False)
  dfyis.to_excel(writer,'Sheet1', startcol=1,startrow=2,index=False)
@@ -192,6 +193,8 @@ def simpost2excel(path,bname,Xis,Yis,hvec,Cornam,errpos,errvel,err_ft):
  dfeft.to_excel(writer,'Sheet1',startcol=9,startrow=14,index=False)
  dfeftlo.to_excel(writer,'Sheet1',startcol=10,startrow=14,index=False)
  dfeftla.to_excel(writer,'Sheet1',startcol=11,startrow=14,index=False)
+ dfeftphlo.to_excel(writer,'Sheet1',startcol=12,startrow=14,index=False)
+ dfeftphla.to_excel(writer,'Sheet1',startcol=13,startrow=14,index=False)
  workbook  = writer.book
  worksheet = writer.sheets['Sheet1']
  merge_format = workbook.add_format({
