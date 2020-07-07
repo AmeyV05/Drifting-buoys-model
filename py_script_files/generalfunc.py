@@ -29,6 +29,8 @@ def m2latlon(lat,dlonm,dlatm):
  dlon=dlonm/(111.32e03*np.cos(deg2rad*lat))
  return(dlon,dlat)
 
+def rotmatrix(phi):
+  #this function creates a rotation matrix 
 
 def num2datetimehrs(y,m,d,sindex,eindex,tvec):
  x=datetime.datetime(y, m, d)
@@ -282,11 +284,11 @@ def logcopy(path):
 def FTremMD(numtaps,Xib,Xis,tmplierinv):
   Xis=Xis[::tmplierinv]
   #filtering with lowpas filer
-  [Xbres,X1,xfilter]=LPfilter (numtaps,Xib)
-  [Xsres,X1,xfilter]=LPfilter (numtaps,Xis)
-  Nft=len(Xbres);dt=15*60.0 #time difference in observations
-  [xbamres,xbphres,fvec,tvec]=FFT_signal(Xbres,Nft,dt) 
-  [xsamres,xsphres,fvec,tvec]=FFT_signal(Xsres,Nft,dt)
+  [Xbfil,X1,xfilter]=LPfilter (numtaps,Xib)
+  [Xsfil,X1,xfilter]=LPfilter (numtaps,Xis)
+  Nft=len(Xbfil);dt=15*60.0 #time difference in observations
+  [xbamres,xbphres,fvec,tvec]=FFT_signal(Xbfil,Nft,dt) 
+  [xsamres,xsphres,fvec,tvec]=FFT_signal(Xsfil,Nft,dt)
   tvec=tvec/3600 #Period in hours
   #computation of tidal and coriolis frequency arguments
   tide={'M2':12.421,'S2':12.,'MU2':12.871,'O1':25.819,'K1':23.934,'M4':6.2103}
@@ -296,7 +298,21 @@ def FTremMD(numtaps,Xib,Xis,tmplierinv):
   errftph=errorFT(xbphres,xsphres,arg_tide)
   xbres=np.row_stack((xbamres,xbphres))
   xsres=np.row_stack((xsamres,xsphres))
-  return(tvec,xbres,xsres,arg_tide,arg_cor,errftam,errftph)
+  tidamb=[xbamres[arg_tide['M2']],xbamres[arg_tide['S2']],
+          xbamres[arg_tide['MU2']],xbamres[arg_tide['O1']],
+          xbamres[arg_tide['K1']],xbamres[arg_tide['M4']]]
+  tidams=[xsamres[arg_tide['M2']],xsamres[arg_tide['S2']],
+          xsamres[arg_tide['MU2']],xsamres[arg_tide['O1']],
+          xsamres[arg_tide['K1']],xsamres[arg_tide['M4']]]  
+  tidphb=[xbphres[arg_tide['M2']],xbphres[arg_tide['S2']],
+          xbphres[arg_tide['MU2']],xbphres[arg_tide['O1']],
+          xbphres[arg_tide['K1']],xbphres[arg_tide['M4']]]
+  tidphs=[xsphres[arg_tide['M2']],xsphres[arg_tide['S2']],
+          xsphres[arg_tide['MU2']],xsphres[arg_tide['O1']],
+          xsphres[arg_tide['K1']],xsphres[arg_tide['M4']]]  
+  tidb=np.row_stack((tidamb,tidphb))
+  tids=np.row_stack((tidams,tidphs))
+  return(tvec,xbres,xsres,Xbfil,Xsfil,arg_tide,arg_cor,errftam,errftph,tidb,tids)
 
 def errorFT(xbres,xsres,arg_tide):
   errM2=xbres[arg_tide['M2']]-xsres[arg_tide['M2']]

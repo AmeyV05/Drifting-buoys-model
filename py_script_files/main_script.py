@@ -60,8 +60,8 @@ ncdatcount=int(input("Type 1 if you want to read all the NC files and create .xl
 # This describes which forces and parameters are included. 
 #cor=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  #
 
-
-itervec=[0,1,0.8,0.5,0.2,0.1,0,0,0,0,0,0,0,0,0]
+# itervec=[0,1,0.8,0.5,0.2,0.1,0,0,0,0,0,0,0,0,0]
+itervec=[1]
 # param=[0.5]
 for i in range(len(itervec)):
 	Cor=[1,1,1,1,1,1,1,1,1,1,1,1]

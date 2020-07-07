@@ -83,12 +83,21 @@ def modelFx(x,consts,s):
  [xc,yc,u,v] = x
  Cwi=s['iCw'];Cai=s['iCa']
  #transformation for rotation of Ua
+ Ua=Va=0
+
  Ua=Ua*np.cos(thetaa)-Va*np.sin(thetaa)
  Va=Ua*np.sin(thetaa)+Va*np.cos(thetaa)
  #transformation for rotation of Uw
- Uw=Uo+Ut; Vw=Vo+Vt
+ # Uw=Uo+Ut; Vw=Vo+Vt
+ # Uw=0;Vw=0
+ Uw=Ut;Vw=Vt
  Uw=(Uw-u)*np.cos(thetaw)-(Vw-v)*np.sin(thetaw)
  Vw=(Uw-u)*np.sin(thetaw)+(Vw-v)*np.cos(thetaw)
+ # Uw=-Uw;Vw=-Vw
+ # Uw=0;Vw=0
+ Pgx=Pgy=0
+ # Pgxt=Pgyt=0
+ # f=0
  # Ut=(Ut)*np.cos(thetaw)-(Vt)*np.sin(thetaw)
  # Vt=(Ut)*np.sin(thetaw)+(Vt)*np.cos(thetaw)
  # Uw=Ut+Uo-u; Vw=Vt+Vo-v
@@ -104,9 +113,9 @@ def modelFx(x,consts,s):
  Fx=np.zeros(N)
  Fx[0]=u;Fx[1]=v
  Fx[2]=((Cwi*rho_water*Uw*u_mag + 
-         Cai*rho_air*Ua*Ua_mag)/(rho_ice*h)+((f*v)))-g*Pgx -g*Pgxt
+         Cai*rho_air*Ua*Ua_mag)/(rho_ice*h))+f*v-(g)*(Pgx + Pgxt)
  Fx[3]=((Cwi*rho_water*Vw*u_mag+
-         Cai*rho_air*Va*Ua_mag)/(rho_ice*h)-((f*u)))-g*Pgy -g*Pgyt
+         Cai*rho_air*Va*Ua_mag)/(rho_ice*h))-f*u-(g)*(Pgy + Pgyt)
  #linear shear stress model
  # Fx[2]=((Cwi*rho_water*Uw +
  #         Cai*rho_air*Ua)/(rho_ice*h)+((f*v))) -g*Pgx
@@ -115,6 +124,62 @@ def modelFx(x,consts,s):
  # Fx[4] = 0; Fx[5] = 0
  return (Fx)
 
+
+def embmodelFx(x,consts,s):
+ dt=s['dt']
+ N=s['n']
+ g=s['g']
+ thetaa=s['thetaa']
+ thetaw=s['thetaw']
+ rho_water=s['rho_water']
+ rho_air=s['rho_air']
+ rho_ice=s['rho_ice']
+ [f, h, Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt] =consts
+ # print("h="+str(consts[1]))
+ [xc,yc,u,v] = x
+ Cwi=s['iCw'];Cai=s['iCa']
+ #transformation for rotation of Ua
+ Ua=Va=0
+
+ Ua=Ua*np.cos(thetaa)-Va*np.sin(thetaa)
+ Va=Ua*np.sin(thetaa)+Va*np.cos(thetaa)
+ #transformation for rotation of Uw
+ # Uw=Uo+Ut; Vw=Vo+Vt
+ # Uw=0;Vw=0
+ Uw=Ut;Vw=Vt
+ Uw=(Uw-u)*np.cos(thetaw)-(Vw-v)*np.sin(thetaw)
+ Vw=(Uw-u)*np.sin(thetaw)+(Vw-v)*np.cos(thetaw)
+ # Uw=-Uw;Vw=-Vw
+ # Uw=0;Vw=0
+ Pgx=Pgy=0
+
+ u_mag = np.sqrt((Uw)**2+(Vw)**2)
+ Ua_mag=np.sqrt((Ua)**2+(Va)**2)
+ Fx=np.zeros(N)
+ Fx[0]=u;Fx[1]=v
+ Fx[2]=((Cwi*rho_water*Uw*u_mag + 
+         Cai*rho_air*Ua*Ua_mag)/(rho_ice*h))+f*v-(g)*(Pgx + Pgxt)
+ Fx[3]=((Cwi*rho_water*Vw*u_mag+
+         Cai*rho_air*Va*Ua_mag)/(rho_ice*h))-f*u-(g)*(Pgy + Pgyt)
+
+ return (Fx)
+
+def geostromodel(x,consts,s):
+ N=s['n'] 
+ b=0
+ [f, h, Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt] =consts
+ g=s['g']
+ dt=s['dt']
+ [xc,yc,u,v] = x
+ Fx=np.zeros(N)
+ Fx[0]=u;Fx[1]=v
+ Mx=x+dt*Fx
+ Mx[2]=-g*Pgyt/(f+b)
+ Mx[3]=+g*Pgxt/(f+b)
+ # Mx[2]=-Pgyt
+ # Mx[3]=Pgxt
+
+ return(Mx)
 def expeumodel(x,consts,s):
  dt=s['dt']
  N=s['n']

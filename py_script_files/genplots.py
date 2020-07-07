@@ -5,8 +5,10 @@ import cartopy.crs as ccrs
 import cartopy.feature as cpf 
 import numpy as np
 import matplotlib.ticker as mticker
+import matplotlib.transforms as transforms
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import shapely.geometry as sgeom
+import lineid_plot
 plt.rcParams.update({
     "pgf.texsystem": "pdflatex",
     "pgf.preamble": [
@@ -86,43 +88,75 @@ def pltalpha(alpha,path,name):
 
 def pltFT(path,name,xb,xs,tvec,arg_tide,arg_cor):
  fig=plt.figure(figsize=(24,10),frameon=True)
- plt.subplot(2,1,1)
- plt.plot(tvec,xb[0,:],color='r',label=name+"_obs")
- plt.plot(tvec,xs[0,:],color='g',label=name+"_sim")
+ ax1=plt.subplot(2,1,1)
+ ax1.plot(tvec,xb[0,:],color='r',label=name+"_obs")
+ ax1.plot(tvec,xs[0,:],color='g',label=name+"_sim")
+ ax1.set_xlim([5,27])
  argdeg1=arg_cor['argdeg1'];argdeg2=arg_cor['argdeg2']
- plt.axvline(tvec[arg_tide['M2']],color='m', linewidth=1, linestyle='dashed',label='M2')
- plt.axvline(tvec[arg_tide['S2']],color='y',  linewidth=1, linestyle='dashed',label='S2')
- plt.axvline(tvec[arg_tide['MU2']],color='g',  linewidth=1, linestyle='dashed',label='MU2')
- plt.axvline(tvec[arg_tide['O1']],color='orange',  linewidth=1,  linestyle='dashed',label='O1')
- plt.axvline(tvec[arg_tide['K1']],color='blue',  linewidth=1,  linestyle='dashed',label='K1')
- plt.axvline(tvec[arg_tide['M4']],color='teal',  linewidth=1,  linestyle='dashed',label='M4')
- plt.axvline(tvec[argdeg1],color='olive',  linewidth=1, linestyle='dashed',label='74.7')
- plt.axvline(tvec[argdeg2], color='cyan', linewidth=1, linestyle='dashed',label='79')
+ # plt.axvline(tvec[arg_tide['M2']],color='m', linewidth=1, linestyle='dashed',label='M2')
+ # plt.text(tvec[arg_tide['M2']], .5, 'M2', transform=fig.transFigure)
+ # plt.axvline(tvec[arg_tide['S2']],color='y',  linewidth=1, linestyle='dashed',label='S2')
+ # plt.axvline(tvec[arg_tide['MU2']],color='g',  linewidth=1, linestyle='dashed',label='MU2')
+ # plt.axvline(tvec[arg_tide['O1']],color='orange',  linewidth=1,  linestyle='dashed',label='O1')
+ # plt.axvline(tvec[arg_tide['K1']],color='blue',  linewidth=1,  linestyle='dashed',label='K1')
+ # plt.axvline(tvec[arg_tide['M4']],color='teal',  linewidth=1,  linestyle='dashed',label='M4')
+ # plt.axvline(tvec[argdeg1],color='olive',  linewidth=1, linestyle='dashed',label='74.7')
+ # plt.axvline(tvec[argdeg2], color='cyan', linewidth=1, linestyle='dashed',label='79')
+ ak = lineid_plot.initial_annotate_kwargs()
+ ak['arrowprops']['relpos'] = (0.5, 0)
+ pk = lineid_plot.initial_plot_kwargs()
+ pk['color'] = "magenta"
+ argtid=[tvec[arg_tide['M2']],tvec[arg_tide['S2']],tvec[arg_tide['MU2']],
+         tvec[arg_tide['O1']],tvec[arg_tide['K1']],tvec[arg_tide['M4']],
+         tvec[argdeg1],tvec[argdeg2]]
+ tidlab=['M2','S2','MU2','O1','K1','M4','74.7','79']
+ lineid_plot.plot_line_ids(tvec, xb[0,:], argtid, tidlab,ax=ax1,plot_kwargs=pk,annotate_kwargs=ak,max_iter=1, box_loc=0)
  plt.xlabel('Period [h]',fontsize=12,fontweight='bold')
  plt.ylabel('Amplitude (deg)',fontsize=14,fontweight='bold')
- plt.xticks(fontsize=12);plt.yticks(fontsize=14)
- plt.xlim([5,26])
+ plt.xticks(fontsize=12);plt.yticks(fontsize=12)
+ # plt.xlim([5,27])
+
  # plt.legend(loc=1)
- plt.subplot(2,1,2)
- plt.plot(tvec,xb[1,:],color='r')
- plt.plot(tvec,xs[1,:],color='g')
+ ax2=plt.subplot(2,1,2)
+ ax2.plot(tvec,xb[1,:],color='r')
+ ax2.plot(tvec,xs[1,:],color='g')
+ ax2.set_xlim([5,27])
  argdeg1=arg_cor['argdeg1'];argdeg2=arg_cor['argdeg2']
- plt.axvline(tvec[arg_tide['M2']],color='m', linewidth=1, linestyle='dashed')
- plt.axvline(tvec[arg_tide['S2']],color='y',  linewidth=1, linestyle='dashed')
- plt.axvline(tvec[arg_tide['MU2']],color='g',  linewidth=1, linestyle='dashed')
- plt.axvline(tvec[arg_tide['O1']],color='orange',  linewidth=1,  linestyle='dashed')
- plt.axvline(tvec[arg_tide['K1']],color='blue',  linewidth=1,  linestyle='dashed')
- plt.axvline(tvec[arg_tide['M4']],color='teal',  linewidth=1,  linestyle='dashed')
- plt.axvline(tvec[argdeg1],color='olive',  linewidth=1, linestyle='dashed')
- plt.axvline(tvec[argdeg2], color='cyan', linewidth=1, linestyle='dashed')
+ # plt.axvline(tvec[arg_tide['M2']],color='m', linewidth=1, linestyle='dashed')
+ # plt.axvline(tvec[arg_tide['S2']],color='y',  linewidth=1, linestyle='dashed')
+ # plt.axvline(tvec[arg_tide['MU2']],color='g',  linewidth=1, linestyle='dashed')
+ # plt.axvline(tvec[arg_tide['O1']],color='orange',  linewidth=1,  linestyle='dashed')
+ # plt.axvline(tvec[arg_tide['K1']],color='blue',  linewidth=1,  linestyle='dashed')
+ # plt.axvline(tvec[arg_tide['M4']],color='teal',  linewidth=1,  linestyle='dashed')
+ # plt.axvline(tvec[argdeg1],color='olive',  linewidth=1, linestyle='dashed')
+ # plt.axvline(tvec[argdeg2], color='cyan', linewidth=1, linestyle='dashed')
+ lineid_plot.plot_line_ids(tvec, xb[1,:], argtid, tidlab,ax=ax2,plot_kwargs=pk,annotate_kwargs=ak,max_iter=1, box_loc=0)
  plt.xlabel('Period [h]',fontsize=14,fontweight='bold')
  plt.ylabel('Phase (deg)',fontsize=14,fontweight='bold')
- plt.xlim([5,26])
+ # plt.xlim([5,27])
  plt.xticks(fontsize=12);plt.yticks(fontsize=12)
- fig.legend(bbox_to_anchor=(1.0, 0.89),fontsize=12)
+ # # fig.legend(bbox_to_anchor=(1.0, 0.89),fontsize=12)
  plt.savefig(path+'/'+name+'.jpg',format='jpg')
  plt.close(fig)
 
+
+def pltfilsig(p1_x,p_xfilter,p_xresiduum,path,name):
+  fig = plt.figure(figsize=(12, 3))
+  plt.subplot(1,2,1)
+  p_x_ = [v for i, v in enumerate(p1_x) if i % 10 == 0]
+  p_xfilter_ = [v for i, v in enumerate(p_xfilter) if i % 10 == 0]
+  p_xresiduum_ = [v for i, v in enumerate(p_xresiduum) if i % 10 == 0]
+  plt.plot(p_x_,'r-',label='Longitude')
+  plt.plot(p_xfilter_,'k-',label='filter_Signal')
+  plt.xlabel('Time')
+  plt.ylabel('Longitude')
+  plt.legend(loc=1)
+  plt.subplot(1,2,2)
+  plt.plot(p_xresiduum_,label='Residual')
+  plt.xlabel('Time')
+  plt.legend(loc=1)
+  plt.savefig(path+'/'+name+'.jpg',format='jpg', bbox_inches='tight')
+  plt.close(fig)
 
 
 def convplt(rmsposvec,tmvec,s,path,mod):
