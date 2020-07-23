@@ -30,13 +30,15 @@ def m2latlon(lat,dlonm,dlatm):
  return(dlon,dlat)
 
 def rotmatrix(phi):
-  #this function creates a rotation matrix 
+  #this function creates a rotation matrix phi is in rad.
+  R=np.array([[np.cos(phi),np.sin(phi)],[-np.sin(phi),np.cos(phi)]])
+  return(R)
 
 def num2datetimehrs(y,m,d,sindex,eindex,tvec):
  x=datetime.datetime(y, m, d)
  y=[] #tvec modified to date time.
  #index=336  #indexing for going from 1st march to 15th march (only for winds)
- for i in range(sindex, eindex):
+ for i in range(sindex, eindex+1):
   h=tvec[i]
   dt=datetime.timedelta(hours=int(h))
   y1=dt+x
@@ -49,7 +51,7 @@ def num2datetimesecs(y,m,d,sindex,eindex,tvec):
  x=datetime.datetime(y, m, d)
  xtot=[] #tvec modified to date time.
  #index=336  #indexing for going from 1st march to 15th march (only for winds)
- for i in range(sindex, eindex):
+ for i in range(sindex, eindex+1):
   s=tvec[i]
   dt=datetime.timedelta(seconds=int(s))
   y1=dt+x
@@ -74,9 +76,10 @@ def mkdir_p(mypath):
    pass
   else: raise
 
-def veltransform(Uib,Vib,Ut,Vt,Ua,Va,Uo,Vo,Pgx,Pgy,Pgxt,Pgyt,Hi):
+def veltransform(Uib,Vib,Ut,Vt,Ua,Va,Uo,Vo,Pgx,Pgy,Pgxt,Pgyt,Fpgx,Fpgy,Hi):
  Utvec=np.column_stack((Ut,Vt))
  Pgtvec=np.column_stack((Pgxt,Pgyt))
+ Fpgvec=np.column_stack((Fpgx,Fpgy))
  #Utvec=Utvec[:-1] #don't consider the last element as vel vector is 1 less than time
  Uibvec=np.column_stack((Uib,Vib))
  Uavec=np.column_stack((Ua,Va))
@@ -87,11 +90,11 @@ def veltransform(Uib,Vib,Ut,Vt,Ua,Va,Uo,Vo,Pgx,Pgy,Pgxt,Pgyt,Hi):
  Pgvec=np.column_stack((Pgx,Pgy))
  Pgvec=np.repeat(Pgvec,4,axis=0)
  Hivec=np.repeat(Hi,4*24,axis=0)
- add=np.repeat(Hivec[-1],4*12,axis=0)
- Hivec=np.concatenate((Hivec,add),axis=0)
- return(Utvec,Uibvec,Uavec,Uovec,Uwvec,Pgvec,Pgtvec,Hivec)
+ # add=np.repeat(Hivec[-1],4*12,axis=0)   # add for fedge.
+ # Hivec=np.concatenate((Hivec,add),axis=0)
+ return(Utvec,Uibvec,Uavec,Uovec,Uwvec,Pgvec,Pgtvec,Fpgvec,Hivec)
 
-def save2excel(Tib,Utvec,Uibvec,Uovec,Uwvec,Pgvec,Pgtvec,Hivec,Uavec,Xib,Yib,Xibf,Yibf,path):
+def save2excel(Tib,Ta,Tt,To,Tft,Utvec,Uibvec,Uovec,Uwvec,Pgvec,Pgtvec,Fpgvec,Hivec,Uavec,Xib,Yib,Xibf,Yibf,path):
  # Create some Pandas dataframes from some data.
  dfd = pd.DataFrame({'Date(GMT)': Tib[:-1]})
  dfibu = pd.DataFrame({'Uib': Uibvec[:,0]})
@@ -108,12 +111,17 @@ def save2excel(Tib,Utvec,Uibvec,Uovec,Uwvec,Pgvec,Pgtvec,Hivec,Uavec,Xib,Yib,Xib
  dfpgy = pd.DataFrame({'Pgy': Pgvec[:,1]})
  dfpgxt = pd.DataFrame({'Pgxt': Pgtvec[:,0]})
  dfpgyt = pd.DataFrame({'Pgyt': Pgtvec[:,1]})
+ dffpgx = pd.DataFrame({'Fpgx': Fpgvec[:,0]})
+ dffpgy = pd.DataFrame({'Fpgy': Fpgvec[:,1]})
  dfhi=pd.DataFrame({'Hi':Hivec})
  dfibx = pd.DataFrame({'Xib': Xib[:-1]})
  dfiby = pd.DataFrame({'Yib': Yib[:-1]})
  dfibxf = pd.DataFrame({'Xibf': Xibf[:-1]})
  dfibyf = pd.DataFrame({'Yibf': Yibf[:-1]})
-
+ dfta = pd.DataFrame({'Ta': Ta[:-1]})
+ dftt = pd.DataFrame({'Tt': Tt[:-1]})
+ dfto = pd.DataFrame({'To': To[:-1]})
+ dftf = pd.DataFrame({'Tft':Tft[:-1]})
  # Create a Pandas Excel writer using XlsxWriter as the engine.
  writer = pd.ExcelWriter(path+'/Pos_Vel_data.xlsx', engine='xlsxwriter')
 
@@ -148,6 +156,14 @@ def save2excel(Tib,Utvec,Uibvec,Uovec,Uwvec,Pgvec,Pgtvec,Hivec,Uavec,Xib,Yib,Xib
   #buoy locs filtered
  dfibxf.to_excel(writer, startcol=18,startrow=0,index=False)
  dfibyf.to_excel(writer, startcol=19,startrow=0,index=False)
+ # time vecs of wind ocean tidal
+ dfta.to_excel(writer, startcol=20,startrow=0,index=False)
+ dftt.to_excel(writer, startcol=21,startrow=0,index=False)
+ dfto.to_excel(writer, startcol=22,startrow=0,index=False)
+ dftf.to_excel(writer, startcol=23,startrow=0,index=False)
+ #fes pg
+ dffpgx.to_excel(writer,startcol=24,startrow=0,index=False)
+ dffpgy.to_excel(writer,startcol=25,startrow=0,index=False)
  # Close the Pandas Excel writer and output the Excel file.
  #writer.save()
  workbook  = writer.book

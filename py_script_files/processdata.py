@@ -9,7 +9,7 @@ import os
 import generalfunc as gf
 import logging
 
-def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
+def processing(Bnum,indexing,TD,AD,OD,ID,SD,numtaps,sdate):
     prefix="BUOY_"
     bname=prefix+Bnum
     logging.info("Processing started for buoy: "+ bname)
@@ -37,14 +37,36 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
         Xibf=np.append(Xib[0:fedge],Xibf)
         Yibf=np.append(Yib[0:fedge],Yibf)
 
+    # pressure gradients from FES2014
+    logging.info("Processing FES2014 data.")
+    sindex=sdate
+    eindex=sindex+indexing
+    arrlen=eindex-sindex
+    tht=SD['th']; Tft=SD['Tft']
+    fdlat=SD['dlola'][1];fdlon=SD['dlola'][0]   
+    tht=tht[sindex:eindex,:]
+    Tft=gf.num2datetimesecs(2014,3,15,sindex,eindex,Tft*60.)
+    Fpgx=[];Fpgy=[]
+    for i in range(arrlen):
+        dhxt=tht[i,0]-tht[i,1]
+        dhyt=tht[i,2]-tht[i,3]
+        lat=Yib[i]
+        (dy,dx)=gf.latlon2meters(lat,fdlat,fdlon)
+        dzdx=dhxt/dx;dzdy=dhyt/dy
+        Fpgx=np.append(Fpgx,dzdx)
+        Fpgy=np.append(Fpgy,dzdy)
+    print(len(Fpgy))
+    logging.info("Done processing FES2014 data.")
     # obtaining GTSM tidal data in vector form from dictonary TD
+    # sindex=0
+    sindex=sdate-96
+    eindex=sindex+indexing
+    arrlen=eindex-sindex
     Xt=TD['Xt']; Yt=TD['Yt']
     ut=TD['ut']; vt=TD['vt']
     Tt=TD['Tt']; ssht=TD['ssht']
-    sindex=0
-    eindex=sindex+indexing
-    arrlen=eindex-sindex   
     Tt=gf.num2datetimesecs(2014,3,1,sindex,eindex,Tt)
+    ut=ut[sindex:eindex,:];vt=vt[sindex:eindex,:];ssht=ssht[sindex:eindex,:]
     logging.info("Interpolating GTSM data to buoy locations....")
     # processing of gtsm data
     #interpolating the u and v velocities to the buoy locations.
@@ -85,7 +107,7 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
    
     sindex=336+int(sdate/4) #converting to 15th march 00
     eindex=sindex+int((indexing/4))
-    arrlen=eindex-sindex  
+    arrlen=eindex-sindex
     # obtaining wind data in vector form from dictonary TD
     Xa=AD['Xa']
     Ya=AD['Ya']
@@ -197,15 +219,15 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
 
     sindex=int(sdate/(4*24))
     eindex=sindex+int((indexing/(4*24)))
-    arrlen=eindex-sindex 
-    # obtaining wind data in vector form from dictonary TD
+    arrlen=eindex-sindex
+    
     Xe=ID['Xe']
     Ye=ID['Ye']
     hi=ID['hi']
     Te=ID['Te']
     Te=gf.num2datetimehrs(1950,1,1,sindex,eindex,Te)
     hi=hi[sindex:eindex,:,:]
-    logging.info("Interpolating wind data to buoy locations....")
+    logging.info("Interpolating ice thickness to buoy locations....")
     # processing of wind data
     #interpolating the u and v velocities to the buoy locations. Note that the ERA5 winds are hourly. 
     Xibn=Xib[12*4:];Yibn=Yib[12*4:]
@@ -227,7 +249,7 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
     logging.info("Processing complete for ice thickness")
 
     # Vel_transformations
-    [Utvec,Uibvec,Uavec,Uovec,Uwvec,Pgvec,Pgtvec,Hivec]=gf.veltransform(Uib,Vib,Ut,Vt,Ua,Va,Uo,Vo,Pgx,Pgy,Pgxt,Pgyt,Hi)
+    [Utvec,Uibvec,Uavec,Uovec,Uwvec,Pgvec,Pgtvec,Fpgvec,Hivec]=gf.veltransform(Uib,Vib,Ut,Vt,Ua,Va,Uo,Vo,Pgx,Pgy,Pgxt,Pgyt,Fpgx,Fpgy,Hi)
     PD={'Utvec':Utvec,
         'Uibvec':Uibvec,
         'Uavec':Uavec,
@@ -235,12 +257,17 @@ def processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate):
         'Uwvec':Uwvec,
         'Pgvec':Pgvec,
         'Pgtvec':Pgtvec,
+        'Fpgvec':Fpgvec,
         'Hivec':Hivec,
-        'Tib':Tib,
         'Xib':Xib,
         'Yib':Yib,
         'Xibf':Xibf,
-        'Yibf':Yibf,}
+        'Yibf':Yibf,
+        'Tib':Tib,
+        'Tt':Tt,
+        'Ta':Ta,
+        'To':To,
+        'Tft':Tft}
     return(PD)
 
 
@@ -249,22 +276,28 @@ def mainproc(Bnum,indexing,FD,numtaps,sdate):
     AD=FD['AD']
     OD=FD['OD']
     ID=FD['ID']
+    SD=FD['SD']
     prefix="BUOY_"
     bname=prefix+Bnum
     path = "../../generated_data/"+bname
-    PD=processing(Bnum,indexing,TD,AD,OD,ID,numtaps,sdate)
+    PD=processing(Bnum,indexing,TD,AD,OD,ID,SD,numtaps,sdate)
     Utvec=PD['Utvec']
     Uavec=PD['Uavec']
     Uwvec=PD['Uwvec']
     Uibvec=PD['Uibvec']
     Uovec=PD['Uovec'] 
-    Pgvec=PD['Pgvec'];Pgtvec=PD['Pgtvec']
+    Pgvec=PD['Pgvec']
+    Pgtvec=PD['Pgtvec'];Fpgvec=PD['Fpgvec']
     Hivec=PD['Hivec']
     Xib=PD['Xib']
-    Tib=PD['Tib'] 
     Yib=PD['Yib']
     Xibf=PD['Xibf']
     Yibf=PD['Yibf']
+    Tib=PD['Tib']
+    Ta=PD['Ta']  
+    To=PD['To'] 
+    Tt=PD['Tt']
+    Tft=PD['Tft'] 
     logging.info("Velocity vectors successfully merged.")
-    gf.save2excel(Tib,Utvec,Uibvec,Uovec,Uwvec,Pgvec,Pgtvec,Hivec,Uavec,Xib,Yib,Xibf,Yibf,path)
+    gf.save2excel(Tib,Ta,Tt,To,Tft,Utvec,Uibvec,Uovec,Uwvec,Pgvec,Pgtvec,Fpgvec,Hivec,Uavec,Xib,Yib,Xibf,Yibf,path)
     logging.info("All processed data is available in the following loc:"+ path)

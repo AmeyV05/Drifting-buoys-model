@@ -16,12 +16,13 @@ def settings():
  s['rad2deg']= 180.0/np.pi
  s['deg2rad']= np.pi/180.0
  s['thetaa'] = 0*s['deg2rad']#angle made by geostrophic wind with ice velocity.
- s['thetaw'] = 0*s['deg2rad']
+ s['beta']=25*s['deg2rad']
+ s['thetaw'] = 0*s['deg2rad']                       #np.pi - s['beta']
  s['omega']  = (2.0*np.pi)/(24.0*s['hours'])
  s['tmplier']=1/30
  s['dt'] = 15*s['tmplier']*s['minutes']
  s['iCa']=1.2e-03
- s['iCw']=5.5e-03
+ s['iCw']=5.6e-03
  s['Nu0']=0
  s['Nv0']=0
  s['h']=1

@@ -69,7 +69,43 @@ def read_ice(file):
  logging.info("Completed reading ice parameter data")
  return(Xe,Ye,hi,Te)
 
-def readingalldata(fileloc):
+def read_FES(file,Bnum):
+	switcher={'02':[1.2,0.24],
+				 '03':[2.2,0.24],
+				 '09':[1.2,0.24],
+				 '13':[1.2,0.24],
+				 '14':[1.0,0.2],
+				 '16':[1.5,0.24]}
+	dlonlat=switcher.get(Bnum,"Invalid Buoy number")
+	efile=file+Bnum+"e.nc"
+	fesdatae=nc4.Dataset(efile)
+	Tft=np.array(fesdatae.variables["time"])
+	the=np.array(fesdatae.variables["tide"])
+	the=the.diagonal()
+	wfile=file+Bnum+"w.nc"
+	fesdataw=nc4.Dataset(wfile)
+	thw=np.array(fesdataw.variables["tide"])
+	thw=thw.diagonal()
+	nfile=file+Bnum+"n.nc"
+	fesdatan=nc4.Dataset(nfile)
+	thn=np.array(fesdatan.variables["tide"])
+	thn=thn.diagonal()
+	sfile=file+Bnum+"s.nc"
+	fesdatas=nc4.Dataset(sfile)
+	ths=np.array(fesdatas.variables["tide"])
+	ths=ths.diagonal()
+	tht=np.vstack((the,thw,thn,ths))
+	print(np.shape(tht.T))
+	logging.info("Completed reading FES2014 data")
+	return(tht.T,Tft,dlonlat)
+
+def readingalldata(fileloc,Bnum):
+
+ ### FES2014 data
+ logging.info("Reading FES2014 data")
+ file=fileloc+"/FES2014data/BUOY_"
+ [tht,Tft,dlonlat]=read_FES(file,Bnum)
+ SD={'th':tht,'Tft':Tft,'dlola':dlonlat}
  #####GTSM data
  logging.info("Reading GTSM data")
  #print("Reading GTSM data")
@@ -94,7 +130,7 @@ def readingalldata(fileloc):
  file=fileloc+"/ice-param-mercator.nc"
  [Xe,Ye,hi,Te]=read_ice(file)
  ID={'Xe': Xe,'Ye': Ye,'hi':hi,'Te': Te}
- FD={'TD':TD,'AD':AD,'OD':OD,'ID':ID}
+ FD={'TD':TD,'AD':AD,'OD':OD,'ID':ID,'SD':SD}
  return(FD)
 
 def main():

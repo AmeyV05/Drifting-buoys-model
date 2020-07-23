@@ -111,7 +111,7 @@ def body(Bnum,indexing,numtaps,Cor):
 
   tmplierinv=int(1/s['tmplier']) 
   logging.info("Model Simulations done.")
-  Xib=PD['Xib'][:-fedge+1]; Yib=PD['Yib'][:-fedge+1]
+  Xib=PD['Xib'][:]; Yib=PD['Yib']   #[:-fedge+1]
   Xibf=PD['Xibf']; Yibf=PD['Yibf']
   Uibvec=PD['Uibvec'];hvec=PD['hvec'];Tib=PD['Tib']
   logging.info("Plotting started")
@@ -120,13 +120,13 @@ def body(Bnum,indexing,numtaps,Cor):
   logging.info("Plotting completed. Files available in:" +path)
   #error statistics  
   #pos error stats
-  (merr,rms,werr)=gf.errstats(Xib,Yib,Xis,Yis,tmplierinv)
+  (merr,rms,werr)=gf.errstats(Xib,Yib,Xis[:-1],Yis[:-1],tmplierinv)
   logging.info("Mean error in position is: "+str(merr))
   logging.info("RMS error in position is: "+str(rms))
   logging.info("Weighted mean error in position is: "+str(werr))
   errpos=np.column_stack((merr,rms,werr))
   #vel error stats
-  Uib=Uibvec[:,0][:-fedge];Vib=Uibvec[:,1][:-fedge]
+  Uib=Uibvec[:,0]  ;Vib=Uibvec[:,1]   #[:-fedge]
   Uis=Uisvec[:,0];Vis=Uisvec[:,1]
   (merr,rms,werr)=gf.errstats(Uib,Vib,Uis,Vis,tmplierinv)
   logging.info("Mean error in velocity is: "+str(merr))
@@ -140,12 +140,14 @@ def body(Bnum,indexing,numtaps,Cor):
   # gp.pltfilsig(Yis1,yisfil,Ysres,path,'sim_lat_filt')
   # Fourier Transforms  
   # Longitude  
-  (tvec,xbres,xsres,Xbfil,Xsfil,arg_tide,arg_cor,errftamlon,errftphlon,tidblon,tidslon)=gf.FTremMD(numtaps,Xib,Xis,tmplierinv)
+  # numtaps added with fedge later.
+  numtaps=2*24*2+1
+  (tvec,xbres,xsres,Xbfil,Xsfil,arg_tide,arg_cor,errftamlon,errftphlon,tidblon,tidslon)=gf.FTremMD(numtaps,Xib,Xis[:-1],tmplierinv)
   (tvec,ubres,usres,Ubfil,Usfil,arg_tide,arg_cor,errftamlonv,errftphlonv,tidbu,tidsu)=gf.FTremMD(numtaps,Uib,Uis,tmplierinv)
   gp.pltFT(path,"Longitude",xbres,xsres,tvec,arg_tide,arg_cor)
   
   # Latitude
-  (tvec,ybres,ysres,Ybfil,Ysfil,arg_tide,arg_cor,errftamlat,errftphlat,tidblat,tidslat)=gf.FTremMD(numtaps,Yib,Yis,tmplierinv)
+  (tvec,ybres,ysres,Ybfil,Ysfil,arg_tide,arg_cor,errftamlat,errftphlat,tidblat,tidslat)=gf.FTremMD(numtaps,Yib,Yis[:-1],tmplierinv)
   (tvec,vbres,vsres,Vbfil,Vsfil,arg_tide,arg_cor,errftamlonv,errftphlonv,tidbv,tidsv)=gf.FTremMD(numtaps,Vib,Vis,tmplierinv)
   gp.pltFT(path,"Latitude",ybres,ysres,tvec,arg_tide,arg_cor)
   logging.info("Fourier Transforms plotted.")
@@ -156,10 +158,10 @@ def body(Bnum,indexing,numtaps,Cor):
   tidb=np.row_stack((tidblon[0,:],tidblat[0,:],tidblon[1,:],tidblat[1,:]))
   tids=np.row_stack((tidslon[0,:],tidslat[0,:],tidslon[1,:],tidslat[1,:]))
   #creating excel file
-  # Xdata={'Xis':Xis,'Xbfil':Xbfil,'Xsfil':Xsfil,'Usfil':Usfil,'Ubfil':Ubfil}
-  # Ydata={'Yis':Yis,'Ybfil':Ybfil,'Ysfil':Ysfil,'Vsfil':Vsfil,'Vbfil':Vbfil}
-  Xdata={'Xis':Xis,'Xbfil':Xbfil,'Xsfil':Xsfil,'Usfil':Uis[::tmplierinv],'Ubfil':Ubfil}
-  Ydata={'Yis':Yis,'Ybfil':Ybfil,'Ysfil':Ysfil,'Vsfil':Vis[::tmplierinv],'Vbfil':Vbfil}
+  Xdata={'Xis':Xis,'Xbfil':Xbfil,'Xsfil':Xsfil,'Usfil':Usfil,'Ubfil':Ubfil}
+  Ydata={'Yis':Yis,'Ybfil':Ybfil,'Ysfil':Ysfil,'Vsfil':Vsfil,'Vbfil':Vbfil}
+  # Xdata={'Xis':Xis,'Xbfil':Xbfil,'Xsfil':Xsfil,'Usfil':Uis[::tmplierinv],'Ubfil':Ubfil}
+  # Ydata={'Yis':Yis,'Ybfil':Ybfil,'Ysfil':Ysfil,'Vsfil':Vis[::tmplierinv],'Vbfil':Vbfil}
 
   simpost2excel(path,bname,Xdata,Ydata,hvec,Cornam,errpos,errvel,err_ft,tidb,tids)
   logging.info("Excel data file created for simulated data.")
