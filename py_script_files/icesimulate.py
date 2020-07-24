@@ -21,7 +21,7 @@ mod='RungeKutta2'
 def simulate(s,Bnum,indexing,Cor):
  [x0,times,PD]=im.initialisation(Bnum,indexing,s)
  Uavec=PD['Uavec']; Utvec=PD['Utvec']; Uovec=PD['Uovec'];Pgvec=PD['Pgvec'];Pgtvec=PD['Pgtvec']
- ho=s['h'];trate=s['trate'];Yib=PD['Yib']
+ ho=s['h'];trate=s['trate'];Yib=PD['Yib'];Fpgvec=PD['Fpgvec']
  Hivec=PD['Hivec']
  omega=s['omega']
  tmplier=s['tmplier']
@@ -45,6 +45,7 @@ def simulate(s,Bnum,indexing,Cor):
   Uo=Uovec[tiv,0];Vo=Uovec[tiv,1]
   Pgx=Pgvec[tiv,0];Pgy=Pgvec[tiv,1]
   Pgxt=Pgtvec[tiv,0];Pgyt=Pgtvec[tiv,1]
+  Fpgx=Fpgvec[tiv,0];Fpgy=Fpgvec[tiv,1]
   #for ice thickness from some model (variable)
   # if Hivec[tiv]>0.2:
   #   h=Hivec[tiv]
@@ -55,7 +56,10 @@ def simulate(s,Bnum,indexing,Cor):
   if ((ti*tmplier)%1==0):
     h=gf.thinrate(ho,trate)
     hvec=np.append(hvec,h*Cor[1]);ho=h
+  #with GTSM pg
   consts=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]
+  #with FES2014 pg
+  # consts=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Fpgx,Fpgy]
   consts=np.multiply(Cor,consts)
   if (mod=='ExplicitEuler'):
    xn=im.expeumodel(x,consts,s)

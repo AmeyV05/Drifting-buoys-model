@@ -17,8 +17,8 @@ def readveldata(path):
  Va=np.array(D['Va'])
  Uo=np.array(D['Uo'])
  Vo=np.array(D['Vo'])
- Pgx=np.array(D['Pgx']);Pgxt=np.array(D['Pgxt'])
- Pgy=np.array(D['Pgy']);Pgyt=np.array(D['Pgyt'])
+ Pgx=np.array(D['Pgx']);Pgxt=np.array(D['Pgxt']);Fpgx=np.array(D['Fpgx'])
+ Pgy=np.array(D['Pgy']);Pgyt=np.array(D['Pgyt']);Fpgy=np.array(D['Fpgy'])
  Tib=np.array(D['Date(GMT)'])
  Xib=np.array(D['Xib'])
  Yib=np.array(D['Yib'])
@@ -30,6 +30,7 @@ def readveldata(path):
  Uovec=np.column_stack((Uo,Vo))
  Pgvec=np.column_stack((Pgx,Pgy))
  Pgtvec=np.column_stack((Pgxt,Pgyt))
+ Fpgvec=np.column_stack((Fpgx,Fpgy))
  Hivec=np.array(D['Hi'])
  Uwvec=Uovec+Utvec
  PD={'Utvec':Utvec,
@@ -39,6 +40,7 @@ def readveldata(path):
     'Uwvec':Uwvec,
     'Pgvec':Pgvec,
     'Pgtvec':Pgtvec,
+    'Fpgvec':Fpgvec,
     'Hivec':Hivec,
     'Tib':Tib,
     'Xib':Xib,

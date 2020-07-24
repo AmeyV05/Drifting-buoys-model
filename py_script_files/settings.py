@@ -22,7 +22,7 @@ def settings():
  s['tmplier']=1/30
  s['dt'] = 15*s['tmplier']*s['minutes']
  s['iCa']=1.2e-03
- s['iCw']=5.6e-03
+ s['iCw']=5.5e-03
  s['Nu0']=0
  s['Nv0']=0
  s['h']=1
