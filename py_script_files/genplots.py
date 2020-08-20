@@ -87,57 +87,36 @@ def pltalpha(alpha,path,name):
  plt.close(fig)
 
 def pltFT(path,name,xb,xs,tvec,arg_tide,arg_cor):
- fig=plt.figure(figsize=(24,10),frameon=True)
- ax1=plt.subplot(2,1,1)
- ax1.plot(tvec,xb[0,:],color='r',label=name+"_obs")
- ax1.plot(tvec,xs[0,:],color='g',label=name+"_sim")
- ax1.set_xlim([5,27])
- argdeg1=arg_cor['argdeg1'];argdeg2=arg_cor['argdeg2']
- # plt.axvline(tvec[arg_tide['M2']],color='m', linewidth=1, linestyle='dashed',label='M2')
- # plt.text(tvec[arg_tide['M2']], .5, 'M2', transform=fig.transFigure)
- # plt.axvline(tvec[arg_tide['S2']],color='y',  linewidth=1, linestyle='dashed',label='S2')
- # plt.axvline(tvec[arg_tide['MU2']],color='g',  linewidth=1, linestyle='dashed',label='MU2')
- # plt.axvline(tvec[arg_tide['O1']],color='orange',  linewidth=1,  linestyle='dashed',label='O1')
- # plt.axvline(tvec[arg_tide['K1']],color='blue',  linewidth=1,  linestyle='dashed',label='K1')
- # plt.axvline(tvec[arg_tide['M4']],color='teal',  linewidth=1,  linestyle='dashed',label='M4')
- # plt.axvline(tvec[argdeg1],color='olive',  linewidth=1, linestyle='dashed',label='74.7')
- # plt.axvline(tvec[argdeg2], color='cyan', linewidth=1, linestyle='dashed',label='79')
- ak = lineid_plot.initial_annotate_kwargs()
- ak['arrowprops']['relpos'] = (0.5, 0)
- pk = lineid_plot.initial_plot_kwargs()
- pk['color'] = "magenta"
- argtid=[tvec[arg_tide['M2']],tvec[arg_tide['S2']],tvec[arg_tide['MU2']],
-         tvec[arg_tide['O1']],tvec[arg_tide['K1']],tvec[arg_tide['M4']],
-         tvec[argdeg1],tvec[argdeg2]]
- tidlab=['M2','S2','MU2','O1','K1','M4','74.7','79']
- lineid_plot.plot_line_ids(tvec, xb[0,:], argtid, tidlab,ax=ax1,plot_kwargs=pk,annotate_kwargs=ak,max_iter=1, box_loc=0)
- plt.xlabel('Period [h]',fontsize=12,fontweight='bold')
- plt.ylabel('Amplitude (deg)',fontsize=14,fontweight='bold')
- plt.xticks(fontsize=12);plt.yticks(fontsize=12)
- # plt.xlim([5,27])
+  fig=plt.figure(figsize=(21,7))
+  ax1=plt.subplot2grid((2,1), (1,0), rowspan=1, colspan=1)
+#     ax1=fig.add_axes([0.1,0.1, 0.8, 0.8])
+  l1=ax1.plot(tvec,xb[1,:],color='r',label="obs")
+  l2=ax1.plot(tvec,xs[1,:],color='g',label="sim") 
+  handles, labels = ax1.get_legend_handles_labels()
+  ax1.legend(handles,labels,loc=1,fontsize='12')
+  ax1.set_xlim([5,27])
+  argdeg1=arg_cor['argdeg1'];argdeg2=arg_cor['argdeg2']
+  ak = lineid_plot.initial_annotate_kwargs()
+  argtid=[tvec[arg_tide['M2']],tvec[arg_tide['S2']],tvec[arg_tide['MU2']],
+       tvec[arg_tide['O1']],tvec[arg_tide['K1']],tvec[arg_tide['M4']],
+       tvec[argdeg1],tvec[argdeg2]]
+  tidlab=['M2','S2','MU2','O1','K1','M4','74.7','79']
+  lineid_plot.plot_line_ids(tvec, xb[1,:], argtid, tidlab,ax=ax1,max_iter=30000)
+  plt.xlabel('Period [h]',fontsize=12,fontweight='bold')
+  plt.ylabel('Phase (deg)',fontsize=12,fontweight='bold')
 
- # plt.legend(loc=1)
- ax2=plt.subplot(2,1,2)
- ax2.plot(tvec,xb[1,:],color='r')
- ax2.plot(tvec,xs[1,:],color='g')
- ax2.set_xlim([5,27])
- argdeg1=arg_cor['argdeg1'];argdeg2=arg_cor['argdeg2']
- # plt.axvline(tvec[arg_tide['M2']],color='m', linewidth=1, linestyle='dashed')
- # plt.axvline(tvec[arg_tide['S2']],color='y',  linewidth=1, linestyle='dashed')
- # plt.axvline(tvec[arg_tide['MU2']],color='g',  linewidth=1, linestyle='dashed')
- # plt.axvline(tvec[arg_tide['O1']],color='orange',  linewidth=1,  linestyle='dashed')
- # plt.axvline(tvec[arg_tide['K1']],color='blue',  linewidth=1,  linestyle='dashed')
- # plt.axvline(tvec[arg_tide['M4']],color='teal',  linewidth=1,  linestyle='dashed')
- # plt.axvline(tvec[argdeg1],color='olive',  linewidth=1, linestyle='dashed')
- # plt.axvline(tvec[argdeg2], color='cyan', linewidth=1, linestyle='dashed')
- lineid_plot.plot_line_ids(tvec, xb[1,:], argtid, tidlab,ax=ax2,plot_kwargs=pk,annotate_kwargs=ak,max_iter=1, box_loc=0)
- plt.xlabel('Period [h]',fontsize=14,fontweight='bold')
- plt.ylabel('Phase (deg)',fontsize=14,fontweight='bold')
- # plt.xlim([5,27])
- plt.xticks(fontsize=12);plt.yticks(fontsize=12)
- # # fig.legend(bbox_to_anchor=(1.0, 0.89),fontsize=12)
- plt.savefig(path+'/'+name+'.jpg',format='jpg')
- plt.close(fig)
+  ax2=fig.add_axes([0.125, 0.57, 0.775, 0.34],sharex=ax1)
+  l1=ax2.plot(tvec,xb[0,:],color='r',label="obs")
+  l2=ax2.plot(tvec,xs[0,:],color='g',label="sim")
+  handles, labels = ax2.get_legend_handles_labels()
+  ax2.legend(handles,labels,loc=1,fontsize='12')
+  lineid_plot.plot_line_ids(tvec, xb[0,:], argtid, tidlab,ax=ax2,max_iter=30000) #
+  plt.ylabel('Amplitude (deg)',fontsize=12,fontweight='bold')
+  plt.setp(ax2.get_xticklabels(), visible=False)
+  plt.xticks(fontsize=12);plt.yticks(fontsize=12)
+  plt.savefig(path+'/'+name+'.jpg',format='jpg')
+  plt.close(fig)
+
 
 
 def pltfilsig(p1_x,p_xfilter,p_xresiduum,path,name):

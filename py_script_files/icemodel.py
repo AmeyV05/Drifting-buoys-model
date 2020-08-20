@@ -85,12 +85,12 @@ def modelFx(x,consts,s):
  [xc,yc,u,v] = x
  Cwi=s['iCw'];Cai=s['iCa']
  #transformation for rotation of Ua
- Ua=Va=0
+ # Ua=Va=0
 
  Ua=Ua*np.cos(thetaa)-Va*np.sin(thetaa)
  Va=Ua*np.sin(thetaa)+Va*np.cos(thetaa)
  #transformation for rotation of Uw
- Uw=Ut; Vw=Vt
+ Uw=Ut+Uo; Vw=Vt+Vo
  # Uw=0;Vw=0
  # Uw=Ut;Vw=Vt
  Uw=(Uw-u)*np.cos(thetaw)+(Vw-v)*np.sin(thetaw)
@@ -115,9 +115,9 @@ def modelFx(x,consts,s):
  Fx=np.zeros(N)
  Fx[0]=u;Fx[1]=v
  Fx[2]=((Cwi*rho_water*Uw*u_mag + 
-         Cai*rho_air*Ua*Ua_mag)/(rho_ice*h))+f*(v)-g*( Pgxt)
+         Cai*rho_air*Ua*Ua_mag)/(rho_ice*h))+f*(v)-g*( Pgxt+Pgx)
  Fx[3]=((Cwi*rho_water*Vw*u_mag+
-         Cai*rho_air*Va*Ua_mag)/(rho_ice*h))-f*(u)-g*( Pgyt)  
+         Cai*rho_air*Va*Ua_mag)/(rho_ice*h))-f*(u)-g*( Pgyt+Pgy)  
 
 
  # -   (g)*( Pgyt)

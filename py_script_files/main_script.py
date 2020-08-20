@@ -62,10 +62,13 @@ ncdatcount=int(input("Type 1 if you want to read all the NC files and create .xl
 #cor=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  #
 
 # itervec=[0,1,0.8,0.5,0.2,0.1,0,0,0,0,0,0,0,0,0]
-itervec=[1]
+# itervec=[1]
 # param=[0.5]
+itervec=[1]
 for i in range(len(itervec)):
 	Cor=[1,1,1,1,1,1,1,1,1,1,1,1]
+	# Cor=[1,1,1,1,0,0,0,0,0,0,1,1]   #for pgt, coriolis, air 
+	# Cor=[1,1,1,1,1,1,1,1,1,1,0,0] 
 	if i==0:
 		Cor[i]=itervec[i]
 		# Cor[i+1]=itervec[i]
@@ -100,22 +103,22 @@ for i in range(len(itervec)):
 	  # emisim.body(Bnum,indexing,numtaps,Cor)
 	else:
 	  for i in switcher:
-	  	if i=='02' or i=='03' or i=='09':
-	  		continue
-	  	else:
-		    Bnum=i
-		    logging.info("Running for: Buoy_"+Bnum)
-		    indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
-		    if (ncdatcount==1):
-		      logging.info("Running the script for reading all the .NC data files.")
-		      #Define nc file locations
-		      if os.path.isdir('../../container/Data_from_models'):
-		        fileloc="../../container/Data_from_models"
-		      else:
-		        fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
-		      FD=rdnc.readingalldata(fileloc,Bnum)
-		      ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
-		    isim.body(Bnum,indexing,numtaps,Cor)
+	  	# if i=='02' or i=='03' or i=='09':
+	  	# 	continue
+	  	# else:
+	    Bnum=i
+	    logging.info("Running for: Buoy_"+Bnum)
+	    indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate-fedge
+	    if (ncdatcount==1):
+	      logging.info("Running the script for reading all the .NC data files.")
+	      #Define nc file locations
+	      if os.path.isdir('../../container/Data_from_models'):
+	        fileloc="../../container/Data_from_models"
+	      else:
+	        fileloc="P:/1230882-emodnet_hrsm/fromAmey/container/Data_from_models"
+	      FD=rdnc.readingalldata(fileloc,Bnum)
+	      ncdat.mainproc(Bnum,indexing,FD,numtaps,sdate)
+	    isim.body(Bnum,indexing,numtaps,Cor)
 		    # emisim.body(Bnum,indexing,numtaps,Cor)
 
 
