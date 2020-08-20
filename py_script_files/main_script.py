@@ -122,7 +122,3 @@ for i in range(len(itervec)):
 		    # emisim.body(Bnum,indexing,numtaps,Cor)
 
 
-
-## To run ensemble filter scripts and optimization
-# itscrpt.main(Bnum,indexing,Cor)
-# enkf.body(Bnum,indexing,Cor)
