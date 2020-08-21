@@ -1,0 +1,15 @@
+### This short document explains the structure of the code and scripts####
+
+There are three sections:
+
+1. pre-processing: In this the data from buoys and the different models (ERA5, gtsm, etc) are processed.
+A folder names "generated data" is created to store all the processes data in the form of an excel file named "Pos_VelData.xlsx" for each individual buoy.
+
+2. Model: This includes scripts to run the model on the pre-processed data available in "Pos_VelData.xlsx"". The data generated is stored in the respective buoy folder. Further, for each buoy based on the forces in the model a new folder is created. For example: "h1f1A1T1O1Po1Pt1"
+Here, 'h' is for ice thickness, and following '1' corresponds to the thickness in m . 'f' is for Coriolis and following '1' implies the force is on or active. Incase coriolis is switched off, then '0' follows 'f'. Now similarly, 'A' is for wind/air stress, 'T' is for tidal shear stress, 'O' is for 
+ocean shear stress. 'Po' is for pressure gradients from ocean sea surface heights and 'Pt' for pressure gradients from tidal sea surface heights.
+Under each of such folder you will find an excel file including all the simulated model data with certain important statistics.
+
+Please note that 1 and 2 are independent set of scripts. One doesn't have to run pre-processing everytime. It just needs to be run once to create the pos_veldata.xlsx file. 
+
+3. Post-processing: This includes scripts for plotting and saving basic figures. Further, there are jupyter scripts to postprocess the data.

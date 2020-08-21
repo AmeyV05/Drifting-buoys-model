@@ -87,7 +87,7 @@ def simulate(s,Bnum,indexing,Cor):
  PD['hvec']=hvec
  return(Xis,Yis,Uisvec,results,times,PD)
  
-def body(Bnum,indexing,numtaps,Cor):
+def body(Bnum,indexing,Cor):
   prefix="BUOY_"
   bname=prefix+Bnum
   path = "../../generated_data/"+bname
@@ -96,6 +96,7 @@ def body(Bnum,indexing,numtaps,Cor):
   (Cornam,folname)=gf.Cordesfunc(Cor,trate,h)
   path=path+'/'+folname
   gf.mkdir_p(path)
+  numtaps=2*24*2+1
   fedge=int(numtaps/2)
   logging.info("Model simulation started.")
   Corn=[]

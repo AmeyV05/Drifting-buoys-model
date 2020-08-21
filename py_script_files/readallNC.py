@@ -1,23 +1,11 @@
-#module to load data from all the data files.
-
+####module to load data from all the .nc files of the various models.
 import netCDF4 as nc4 
 import numpy as np
 import generalfunc as gf
 import logging 
 np.set_printoptions(threshold=np.inf)
 
-#Note that data only available
-#The 1344 gets data from 15th march to end 
-def read_GTSM_his(file,sindex,eindex):	
- GTSM_data= nc4.Dataset(file)
- Xt=np.array(GTSM_data.variables["station_x_coordinate"])[sindex:eindex,1] #X is longitdue and Y is latitude
- Yt=np.array(GTSM_data.variables["station_y_coordinate"])[sindex:eindex,1]
- Ut=np.array(GTSM_data.variables["x_velocity"])[sindex:eindex,1]
- Vt=np.array(GTSM_data.variables["y_velocity"])[sindex:eindex,1]
- Tt=np.array(GTSM_data.variables["time"])
- Tt=gf.num2datetimesecs(2014,3,1,sindex,eindex,Tt)
- logging.info("Completed reading GTSM data")
- return (Xt,Yt,Ut,Vt,Tt)
+
 
 def read_GTSM_map(file):
  GTSM_data= nc4.Dataset(file)
@@ -140,3 +128,21 @@ def main():
 
 if __name__ == '__main__':
  main()
+
+
+## obsolete functions.
+
+
+
+# #Note that data only available
+# #The 1344 gets data from 15th march to end 
+# def read_GTSM_his(file,sindex,eindex):	
+#  GTSM_data= nc4.Dataset(file)
+#  Xt=np.array(GTSM_data.variables["station_x_coordinate"])[sindex:eindex,1] #X is longitdue and Y is latitude
+#  Yt=np.array(GTSM_data.variables["station_y_coordinate"])[sindex:eindex,1]
+#  Ut=np.array(GTSM_data.variables["x_velocity"])[sindex:eindex,1]
+#  Vt=np.array(GTSM_data.variables["y_velocity"])[sindex:eindex,1]
+#  Tt=np.array(GTSM_data.variables["time"])
+#  Tt=gf.num2datetimesecs(2014,3,1,sindex,eindex,Tt)
+#  logging.info("Completed reading GTSM data")
+#  return (Xt,Yt,Ut,Vt,Tt)
