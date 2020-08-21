@@ -13,6 +13,22 @@ import os
 import settings
 import logging
 deg2rad= np.pi/180.0
+
+## function to start creating a log file named out.log
+
+def logcreate(gendataloc):
+  #remove any redundancies with previous log handlers.
+  for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+  # logging changes to create a log file and also show log in the terminal.
+  logging.basicConfig(filename=gendataloc+'/out.log', filemode='w', level=logging.DEBUG)
+  # define a Handler which writes INFO messages or higher to the sys.stderr
+  console = logging.StreamHandler()
+  console.setLevel(logging.INFO)
+  # add the handler to the root logger
+  logging.getLogger('').addHandler(console)
+  logging.disable(logging.DEBUG)
+
 # A conversion function to convert the latitudes and longitudes to meteres.
 # note that this is a simple conversion formula and not very accurate
 def latlon2meters(lat,dlat,dlon):
@@ -33,19 +49,6 @@ def rotmatrix(phi):
   #this function creates a rotation matrix phi is in rad.
   R=np.array([[np.cos(phi),np.sin(phi)],[-np.sin(phi),np.cos(phi)]])
   return(R)
-
-def num2datetimehrs(y,m,d,sindex,eindex,tvec):
- x=datetime.datetime(y, m, d)
- y=[] #tvec modified to date time.
- #index=336  #indexing for going from 1st march to 15th march (only for winds)
- for i in range(sindex, eindex+1):
-  h=tvec[i]
-  dt=datetime.timedelta(hours=int(h))
-  y1=dt+x
-  y=np.append(y,y1.strftime("%d/%m/%Y %H:%M:%S"))
- #print(y)
- #print(len(time))
- return(y)
 
 def num2datetimesecs(y,m,d,sindex,eindex,tvec):
  x=datetime.datetime(y, m, d)
@@ -75,112 +78,6 @@ def mkdir_p(mypath):
    print(basename+" directory already exists.")
    pass
   else: raise
-
-def veltransform(Uib,Vib,Ut,Vt,Ua,Va,Uo,Vo,Pgx,Pgy,Pgxt,Pgyt,Fpgx,Fpgy,Hi):
- Utvec=np.column_stack((Ut,Vt))
- Pgtvec=np.column_stack((Pgxt,Pgyt))
- Fpgvec=np.column_stack((Fpgx,Fpgy))
- #Utvec=Utvec[:-1] #don't consider the last element as vel vector is 1 less than time
- Uibvec=np.column_stack((Uib,Vib))
- Uavec=np.column_stack((Ua,Va))
- Uavec=np.repeat(Uavec,4,axis=0)
- Uovec=np.column_stack((Uo,Vo))
- Uovec=np.repeat(Uovec,4,axis=0)
- Uwvec=Utvec+Uovec
- Pgvec=np.column_stack((Pgx,Pgy))
- Pgvec=np.repeat(Pgvec,4,axis=0)
- Hivec=np.repeat(Hi,4*24,axis=0)
- # add=np.repeat(Hivec[-1],4*12,axis=0)   # add for fedge.
- # Hivec=np.concatenate((Hivec,add),axis=0)
- return(Utvec,Uibvec,Uavec,Uovec,Uwvec,Pgvec,Pgtvec,Fpgvec,Hivec)
-
-def save2excel(Tib,Ta,Tt,To,Tft,Utvec,Uibvec,Uovec,Uwvec,Pgvec,Pgtvec,Fpgvec,Hivec,Uavec,Xib,Yib,Xibf,Yibf,path):
- # Create some Pandas dataframes from some data.
- dfd = pd.DataFrame({'Date(GMT)': Tib[:-1]})
- dfibu = pd.DataFrame({'Uib': Uibvec[:,0]})
- dfibv = pd.DataFrame({'Vib': Uibvec[:,1]})
- dftu = pd.DataFrame({'Ut': Utvec[:,0]})
- dftv = pd.DataFrame({'Vt': Utvec[:,1]})
- dfau = pd.DataFrame({'Ua': Uavec[:,0]})
- dfav = pd.DataFrame({'Va': Uavec[:,1]})
- dfou = pd.DataFrame({'Uo': Uovec[:,0]})
- dfov = pd.DataFrame({'Vo': Uovec[:,1]})
- dfwu = pd.DataFrame({'Uw': Uwvec[:,0]})
- dfwv = pd.DataFrame({'Vw': Uwvec[:,1]})
- dfpgx = pd.DataFrame({'Pgx': Pgvec[:,0]})
- dfpgy = pd.DataFrame({'Pgy': Pgvec[:,1]})
- dfpgxt = pd.DataFrame({'Pgxt': Pgtvec[:,0]})
- dfpgyt = pd.DataFrame({'Pgyt': Pgtvec[:,1]})
- dffpgx = pd.DataFrame({'Fpgx': Fpgvec[:,0]})
- dffpgy = pd.DataFrame({'Fpgy': Fpgvec[:,1]})
- dfhi=pd.DataFrame({'Hi':Hivec})
- dfibx = pd.DataFrame({'Xib': Xib[:-1]})
- dfiby = pd.DataFrame({'Yib': Yib[:-1]})
- dfibxf = pd.DataFrame({'Xibf': Xibf[:-1]})
- dfibyf = pd.DataFrame({'Yibf': Yibf[:-1]})
- dfta = pd.DataFrame({'Ta': Ta[:-1]})
- dftt = pd.DataFrame({'Tt': Tt[:-1]})
- dfto = pd.DataFrame({'To': To[:-1]})
- dftf = pd.DataFrame({'Tft':Tft[:-1]})
- # Create a Pandas Excel writer using XlsxWriter as the engine.
- writer = pd.ExcelWriter(path+'/Pos_Vel_data.xlsx', engine='xlsxwriter')
-
- # Position the dataframes in the worksheet.
- dfd.to_excel(writer, startcol=0,startrow=0,index=False)  # Default position, cell A1.
- #buoy
- dfibu.to_excel(writer, startcol=1,startrow=0,index=False)
- dfibv.to_excel(writer, startcol=2,startrow=0,index=False)
- #GTSM
- dftu.to_excel(writer, startcol=3,startrow=0,index=False)
- dftv.to_excel(writer, startcol=4,startrow=0,index=False)
- #Ocean
- dfou.to_excel(writer, startcol=5,startrow=0,index=False)
- dfov.to_excel(writer, startcol=6,startrow=0,index=False)
- #Ocean+Tidal
- dfwu.to_excel(writer, startcol=7,startrow=0,index=False)
- dfwv.to_excel(writer, startcol=8,startrow=0,index=False)
- #ERA 5 winds
- dfau.to_excel(writer, startcol=9,startrow=0,index=False)
- dfav.to_excel(writer, startcol=10,startrow=0,index=False)
- # Pressure gradients
- dfpgx.to_excel(writer, startcol=11,startrow=0,index=False)
- dfpgy.to_excel(writer, startcol=12,startrow=0,index=False)
- # Pressure gradients
- dfpgxt.to_excel(writer, startcol=13,startrow=0,index=False)
- dfpgyt.to_excel(writer, startcol=14,startrow=0,index=False)
- # Ice thickness
- dfhi.to_excel(writer, startcol=15,startrow=0,index=False)
- #buoy locs
- dfibx.to_excel(writer, startcol=16,startrow=0,index=False)
- dfiby.to_excel(writer, startcol=17,startrow=0,index=False)
-  #buoy locs filtered
- dfibxf.to_excel(writer, startcol=18,startrow=0,index=False)
- dfibyf.to_excel(writer, startcol=19,startrow=0,index=False)
- # time vecs of wind ocean tidal
- dfta.to_excel(writer, startcol=20,startrow=0,index=False)
- dftt.to_excel(writer, startcol=21,startrow=0,index=False)
- dfto.to_excel(writer, startcol=22,startrow=0,index=False)
- dftf.to_excel(writer, startcol=23,startrow=0,index=False)
- #fes pg
- dffpgx.to_excel(writer,startcol=24,startrow=0,index=False)
- dffpgy.to_excel(writer,startcol=25,startrow=0,index=False)
- # Close the Pandas Excel writer and output the Excel file.
- #writer.save()
- workbook  = writer.book
- worksheet = writer.sheets['Sheet1']
- merge_format = workbook.add_format({
-    'bold': 1,
-    'border': 1,
-    'align': 'center',
-    'valign': 'vcenter',
-     })
- # worksheet.merge_range("B1:C1","Buoy", merge_format)
- # worksheet.merge_range("D1:E1","Simulated", merge_format)
- # worksheet.merge_range("F1:G1","GTSM", merge_format)
- # worksheet.merge_range("H1:I1","Ocean currents", merge_format)
- # worksheet.merge_range("J1:K1","Ocean+Tides", merge_format)
- # worksheet.merge_range("L1:M1","ERA5", merge_format)
- workbook.close()
 
 def index2time(indexing):
  tothours=indexing/4	
