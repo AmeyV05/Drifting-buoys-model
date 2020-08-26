@@ -80,89 +80,27 @@ def mkdir_p(mypath):
   else: raise
 
 def index2time(indexing):
- tothours=indexing/4	
- ndays=math.floor(tothours/24)
- nhrs=tothours-(ndays*24)
- return(ndays,nhrs)
-
-#subroutine for FFT 
-def FFT_signal(y,N,ts):
-    Yamp=abs(np.fft.fft(y))/N
-    Ypha=np.angle(np.fft.fft(y),deg=True)
-    if (N%2==1):
-        N1=int((N-1)/2)
-        Yampplt=Yamp[:N1]
-        Yphaplt=Ypha[:N1]
-    else:
-        N1=int((N/2))
-        Yampplt=Yamp[:N1]
-        Yphaplt=Ypha[:N1]
-    #sampling frequency
-    fs=1/ts #ts is sampling time in seconds
-    f_nq=fs/2 #Nyquist frequency (Fmax)
-    fvec=np.linspace(0,f_nq,N1)
-    tvec=1/fvec[1:]
-    tvec=np.append(np.inf,tvec)
-    return(Yampplt,Yphaplt,fvec,tvec)
+  #This function gives you the number of days and hours based on the indexing value.
+  # it is suited to give values based on 15 mins time step. 
+  tothours=indexing/4	
+  ndays=math.floor(tothours/24)
+  nhrs=tothours-(ndays*24)
+  return(ndays,nhrs)
 
 
-def TidCorio_comput(tvec,tide,Cordeg): 
-    deg1=Cordeg['deg1'];deg2=Cordeg['deg2'] 
-    #coriolis frequ
-    phi1=np.deg2rad(deg1);phi2=np.deg2rad(deg2)
-    coriolis=(2*2*np.pi)/(86164.09/3600)
-    corperd1=2*np.pi/(coriolis*np.sin(phi1))
-    corperd2=2*np.pi/(coriolis*np.sin(phi2))
-    arg_deg1=(np.abs(tvec-corperd1)).argmin()
-    arg_deg2=(np.abs(tvec-corperd2)).argmin()
-    arg_cor={'argdeg1':arg_deg1,'argdeg2':arg_deg2}
-    arg_m2 = (np.abs(tvec-tide['M2'])).argmin()
-    arg_s2 = (np.abs(tvec-tide['S2'])).argmin()
-    arg_mu2 = (np.abs(tvec-tide['MU2'])).argmin()
-    arg_o1 = (np.abs(tvec-tide['O1'])).argmin()
-    arg_k1 = (np.abs(tvec-tide['K1'])).argmin()
-    arg_m4 = (np.abs(tvec-tide['M4'])).argmin()
-    arg_tide={'M2':arg_m2,'S2':arg_s2,'MU2':arg_mu2,'O1':arg_o1,'K1':arg_k1,'M4':arg_m4}
-    return(arg_tide,arg_cor)
-
-def LPfilter (numtaps,p_x):     
-    window=signal.hamming(numtaps)
-    window=window/sum(window)
-    p_xfilter=signal.convolve(p_x, window, mode='valid') 
-    edge=int(numtaps/2)
-    p_xresiduum=p_x[edge:-edge]-p_xfilter
-    p_x=p_x[edge:-edge]
-    return (p_xresiduum,p_x,p_xfilter)
-
-
-#Error statistics function 
-
-def errstats(Xobs,Yobs,Xsim,Ysim,tmplierinv):
- Xsim=Xsim[::tmplierinv]
- Ysim=Ysim[::tmplierinv]
- dx=(Xobs - Xsim);dy=(Yobs - Ysim);da=np.sqrt((dx**2+dy**2))
- #mean error
- merrx=dx.mean();merry=dy.mean();merra=da.mean()
- merr=[merrx,merry,merra]
- #rms error
- rmsx=np.sqrt((dx ** 2).mean())
- rmsy=np.sqrt((dy ** 2).mean())
- rmsa=np.sqrt((da ** 2).mean())
- rms=[rmsx,rmsy,rmsa]
- #weighted error
- N=len(dx)
- s=0;
- for i in range(N): s+=(N-i)*dx[i]
- werrx=(1/(2*N*(N+1)))*s
- s=0; 
- for i in range(N): s+=(N-i)*dy[i]
- werry=(1/(2*N*(N+1)))*s
- for i in range(N): s+=(N-i)*da[i]
- werra=(1/(2*N*(N+1)))*s
- werr=[werrx,werry,werra]
- return(merr,rms,werr)
-
-def Cordesfunc(Cor,trate,hs):
+def icethicktyp(forcevec,trate):
+  s=settings.settings()
+  forcevecn=[]
+  if forcevec[1]!='v':
+    forcevecn=forcevec
+    trate=0
+    logging.info("Running with constant ice thickness.")
+  else:
+    forcevecn=forcevec[:]
+    forcevecn[1]=1
+  return(forcevecn,trate)
+  
+def forcedetail(Cor,trate,hs):
   #this function gives an output string array
   #which describes the forces and parameters of the simulations.
   f='Yes' if Cor[0]==1 else 'No' #Coriolis 
@@ -193,58 +131,45 @@ def logcopy(path):
   shutil.copy(srfile,path+'/out.log')
   print("Log file available in: "+path)
 
-#getting FT by subracting the mean drift and obtaining tidal components for M2 and coriolis 
-def FTremMD(numtaps,Xib,Xis,tmplierinv):
-  Xis=Xis[::tmplierinv]
-  #filtering with lowpas filer
-  [Xbfil,X1,xfilter]=LPfilter (numtaps,Xib)
-  [Xsfil,X1,xfilter]=LPfilter (numtaps,Xis)
-  Nft=len(Xbfil);dt=15*60.0 #time difference in observations
-  [xbamres,xbphres,fvec,tvec]=FFT_signal(Xbfil,Nft,dt) 
-  [xsamres,xsphres,fvec,tvec]=FFT_signal(Xsfil,Nft,dt)
-  tvec=tvec/3600 #Period in hours
-  #computation of tidal and coriolis frequency arguments
-  tide={'M2':12.421,'S2':12.,'MU2':12.871,'O1':25.819,'K1':23.934,'M4':6.2103}
-  Cordeg={'deg1':74.7,'deg2':79}  #latitude for coriolis
-  [arg_tide,arg_cor]= TidCorio_comput(tvec,tide,Cordeg)
-  errftam=errorFT(xbamres,xsamres,arg_tide)
-  errftph=errorFT(xbphres,xsphres,arg_tide)
-  xbres=np.row_stack((xbamres,xbphres))
-  xsres=np.row_stack((xsamres,xsphres))
-  tidamb=[xbamres[arg_tide['M2']],xbamres[arg_tide['S2']],
-          xbamres[arg_tide['MU2']],xbamres[arg_tide['O1']],
-          xbamres[arg_tide['K1']],xbamres[arg_tide['M4']]]
-  tidams=[xsamres[arg_tide['M2']],xsamres[arg_tide['S2']],
-          xsamres[arg_tide['MU2']],xsamres[arg_tide['O1']],
-          xsamres[arg_tide['K1']],xsamres[arg_tide['M4']]]  
-  tidphb=[xbphres[arg_tide['M2']],xbphres[arg_tide['S2']],
-          xbphres[arg_tide['MU2']],xbphres[arg_tide['O1']],
-          xbphres[arg_tide['K1']],xbphres[arg_tide['M4']]]
-  tidphs=[xsphres[arg_tide['M2']],xsphres[arg_tide['S2']],
-          xsphres[arg_tide['MU2']],xsphres[arg_tide['O1']],
-          xsphres[arg_tide['K1']],xsphres[arg_tide['M4']]]  
-  tidb=np.row_stack((tidamb,tidphb))
-  tids=np.row_stack((tidams,tidphs))
-  return(tvec,xbres,xsres,Xbfil,Xsfil,arg_tide,arg_cor,errftam,errftph,tidb,tids)
-
-def errorFT(xbres,xsres,arg_tide):
-  errM2=xbres[arg_tide['M2']]-xsres[arg_tide['M2']]
-  errS2=xbres[arg_tide['S2']]-xsres[arg_tide['S2']]
-  errMU2=xbres[arg_tide['MU2']]-xsres[arg_tide['MU2']]
-  errO1=xbres[arg_tide['O1']]-xsres[arg_tide['O1']]
-  errK1=xbres[arg_tide['K1']]-xsres[arg_tide['K1']]
-  errM4=xbres[arg_tide['M4']]-xsres[arg_tide['M4']]
-  errftvec=[errM2,errS2,errMU2,errO1,errK1,errM4]
-  return(errftvec)
+## low pass filter
+def LPfilter (numtaps,px):     
+  window=signal.hamming(numtaps)
+  window=window/sum(window)
+  pxfilter=signal.convolve(px, window, mode='valid') 
+  edge=int(numtaps/2)
+  pxres=px[edge:-edge]-pxfilter
+  px=px[edge:-edge] #shortening px for later use.
+  return (pxres,px,pxfilter)
+#subroutine for FFT 
+def FFTsig(y,N,ts):
+  Yamp=abs(np.fft.fft(y))/N
+  Ypha=np.angle(np.fft.fft(y),deg=True)
+  if (N%2==1):
+      N1=int((N-1)/2)
+      Yampplt=Yamp[:N1]
+      Yphaplt=Ypha[:N1]
+  else:
+      N1=int((N/2))
+      Yampplt=Yamp[:N1]
+      Yphaplt=Ypha[:N1]
+  #sampling frequency
+  fs=1/ts #ts is sampling time in seconds
+  f_nq=fs/2 #Nyquist frequency (Fmax)
+  fvec=np.linspace(0,f_nq,N1)
+  tvec=1/fvec[1:]
+  tvec=np.append(np.inf,tvec)
+  return(Yampplt,Yphaplt,fvec,tvec)
 
 def thinrate(ho,trate):
   dtobs=15*60
   hn=ho+trate*dtobs
-  if hn<0.05:
+  if hn<0.1:
     logging.info("Error: Ice thickness decreasing to less than 0.1 ")
     logging.info("Using constant ice thickness of 0.1m")
-    hn=0.05
+    hn=0.1
   return(hn)
+
+
 def  main(): # doesn't work anymore 
  Tib=[2,3,4]
  Utvec=np.zeros((4,2))

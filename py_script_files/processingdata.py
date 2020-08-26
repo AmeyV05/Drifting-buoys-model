@@ -94,10 +94,11 @@ def processall(Bnum,indexing,FD,sdate):
         Ut=np.append(Ut,uinterp(Buoy_Xi[i],Buoy_Yi[i]))
         Vt=np.append(Vt,vinterp(Buoy_Xi[i],Buoy_Yi[i]))
         #computation of gradient
-        lat=Buoy_Yi[i];dlon=0.02;dlat=0.01
-        dzx=sshinterp(Buoy_Xi[i]+dlon,Buoy_Yi[i])-sshinterp(Buoy_Xi[i],Buoy_Yi[i])
-        dzy=sshinterp(Buoy_Xi[i],Buoy_Yi[i]+dlat)-sshinterp(Buoy_Xi[i],Buoy_Yi[i])
-        (dy,dx)=gf.latlon2meters(lat,dlat,dlon)
+        # lat=Buoy_Yi[i];dlon=0.02;dlat=0.01 # dlon dlat
+        lat=Buoy_Yi[i];dlon=0.2;dlat=0.05
+        dzx=sshinterp(Buoy_Xi[i]+dlon,Buoy_Yi[i])-sshinterp(Buoy_Xi[i]-dlon,Buoy_Yi[i])
+        dzy=sshinterp(Buoy_Xi[i],Buoy_Yi[i]+dlat)-sshinterp(Buoy_Xi[i],Buoy_Yi[i]-dlat)
+        (dy,dx)=gf.latlon2meters(lat,2*dlat,2*dlon)
         dzdx=dzx/dx;dzdy=dzy/dy
         Pgxt=np.append(Pgxt,dzdx);Pgyt=np.append(Pgyt,dzdy)
 
@@ -165,11 +166,11 @@ def processall(Bnum,indexing,FD,sdate):
             dzdxvec=[]
             dzdxvec=np.append(dzdxvec,0)
             for k in range(len(Xon)-1):
-                # dzet=ssh[i,j,k+1]-ssh[i,j,k] #earlier wrong login?
+                # dzet=ssh[i,j,k+1]-ssh[i,j,k] #earlier wrong logic
                 dzet=sshn[j,k+1]-sshn[j,k]
                 lat=Yo[j]
                 dlat=0
-                # dlon=Xo[k+1]-Xo[k]  ## earlier wrong logic ??????
+                # dlon=Xo[k+1]-Xo[k]  ## earlier wrong logic 
                 dlon=Xon[k+1]-Xon[k]
                 (dy,dx)=gf.latlon2meters(lat,dlat,dlon)
                 dzdxvec=np.append(dzdxvec,dzet/dx)

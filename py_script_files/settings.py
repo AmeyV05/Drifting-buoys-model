@@ -26,7 +26,7 @@ def settings():
  s['Nu0']=0
  s['Nv0']=0
  s['h']=1
- s['trate']=-1.1e-07
+ s['trate']= 0     #-1.1e-07
  s['l']=0
  s['n']=4 #number of elements of model state vector.
  s['en']=s['n']+2*(1+s['l']*int(1/s['tmplier'])) #number of elements of extended state vector +2 is for Nu and Nv
@@ -34,4 +34,9 @@ def settings():
  logging.info("Time step is:" +str(s['dt'])+' seconds')
  logging.info("Ice Air drag coefficient is:" +str(s['iCa']))
  logging.info("Ice Water drag coefficient is:" +str(s['iCw']))
+ s['mod']='RungeKutta2'   #'ExplicitEuler'
+ s['tidepg']='GTSM'    #'FES2014'
+ s['icethck']='modeldef'  #'owndef'
+ s['tidedict']= {'M2':12.421,'S2':12.,'MU2':12.871,'O1':25.819,'K1':23.934,'M4':6.2103}
+ s['cordict']={'deg1':74.7,'deg2':79}  #latitude for coriolis
  return(s)

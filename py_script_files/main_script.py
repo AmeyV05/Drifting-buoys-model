@@ -2,7 +2,7 @@
 ## This is the main script you call to run the code. It will do the pre-processing scripts and model runs together. 
 ## The script gives you an option of pre-processing.
 import numpy as np
-import icesimulate as isim
+import runningmodel 
 import processingdata 
 import readingdata 
 import logging
@@ -73,24 +73,27 @@ def preprocess(Bnum,sdate,indexing):
     processingdata.processingdata(Bnum,indexing,FD,sdate)
     logging.info("Pre-processing completed.")
 
-
-def main():
-	#This is just for trial
-	Bnum='02'
-	indexing=buoyselect(Bnum,sdate)
-	preprocess(Bnum,sdate,indexing)
-
-if __name__ == '__main__':
-	main()
-
-
-
 ### Model 
 # This part is independent of the pre-processing. 
 # But one needs to have the pre-processed data in the form of Pos_VelData.xlsx file to run the model.
 
 # This describes which forces and parameters are included. 
 #forcevec=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  #
+# forcevec=[1,1,1,1,1,1,1,1,1,1,1,1]
+forcevec=[1,1,1,1,1,1,1,1,1,1,1,1]
+def main():
+	#This is just for trial
+	Bnum='16'
+	indexing=buoyselect(Bnum,sdate)
+	preprocess(Bnum,sdate,indexing)
+	runningmodel.body(Bnum,indexing,forcevec)
+
+if __name__ == '__main__':
+	main()
+
+
+
+
 
 # itervec=[0,1,0.8,0.5,0.2,0.1,0,0,0,0,0,0,0,0,0]
 # itervec=[1]
