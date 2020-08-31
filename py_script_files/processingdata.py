@@ -87,9 +87,9 @@ def processall(Bnum,indexing,FD,sdate):
                 ut_ti=np.append(ut_ti,ut_time[j])
                 vt_ti=np.append(vt_ti,vt_time[j])
                 ssht_ti=np.append(ssht_ti,ssht_time[j])
-        uinterp=Rbf(Xtn,Ytn,ut_ti,kind='linear')
-        vinterp=Rbf(Xtn,Ytn,vt_ti,kind='linear')
-        sshinterp=Rbf(Xtn,Ytn,ssht_ti,kind='linear')
+        uinterp=Rbf(Xtn,Ytn,ut_ti) #,kind='linear' changed to multiquadric in the tests it showed that both give same result.
+        vinterp=Rbf(Xtn,Ytn,vt_ti) #,kind='linear'
+        sshinterp=Rbf(Xtn,Ytn,ssht_ti)
         #creating tides at buoy locations
         Ut=np.append(Ut,uinterp(Buoy_Xi[i],Buoy_Yi[i]))
         Vt=np.append(Vt,vinterp(Buoy_Xi[i],Buoy_Yi[i]))

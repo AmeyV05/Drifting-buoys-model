@@ -99,7 +99,7 @@ def icethicktyp(forcevec,trate):
     forcevecn=forcevec[:]
     forcevecn[1]=1
   return(forcevecn,trate)
-  
+
 def forcedetail(Cor,trate,hs):
   #this function gives an output string array
   #which describes the forces and parameters of the simulations.
@@ -168,18 +168,3 @@ def thinrate(ho,trate):
     logging.info("Using constant ice thickness of 0.1m")
     hn=0.1
   return(hn)
-
-
-def  main(): # doesn't work anymore 
- Tib=[2,3,4]
- Utvec=np.zeros((4,2))
- Uibvec=np.zeros((4,2))
- Uisvec=np.zeros((4,2))
- Uovec=np.zeros((4,2))
- Uwvec=np.zeros((4,2))
- Uavec=np.zeros((4,2))
- path="C:/Users/vasulkar/OneDrive - Stichting Deltares/Documents/Research_data/buoy_analysis/py_script_files"
- save2excel(Tib,Utvec,Uibvec,Uisvec,Uovec,Uwvec,Uavec,path)
-
-if __name__ == '__main__':
-	main()

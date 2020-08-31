@@ -107,6 +107,9 @@ def simulate(s,Bnum,indexing,forcevec,PD):
     [x0,times]=initialisation(s,Bnum,indexing,PD)
     Uavec=PD['Uavec']; Utvec=PD['Utvec']; Uovec=PD['Uovec'];Pgvec=PD['Pgvec'];Pgtvec=PD['Pgtvec']
     ho=s['h'];trate=s['trate'];Yib=PD['Yib'];Fpgvec=PD['Fpgvec'];omega=s['omega'];tmplier=s['tmplier']
+    logging.info("Time step is:" +str(s['dt'])+' seconds')
+    logging.info("Ice Air drag coefficient is:" +str(s['iCa']))
+    logging.info("Ice Water drag coefficient is:" +str(s['iCw']))
     lon=x0[0];lat=x0[1]
     Xis=lon;Yis=lat
     x=x0; x[0]=x[1]=0 #initial values in SI unit assuming the starting latitude as 0m.

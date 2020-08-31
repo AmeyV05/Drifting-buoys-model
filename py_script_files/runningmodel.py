@@ -2,61 +2,51 @@
 #The model results are then used to compute error statistics and filtering.
 # The statistics, model results etc are stored in excel files in the model run folders (eg. h1f1A1T1O1Po1Pt1)
 import numpy as np
+import pandas as pd
 import generalfunc as gf
-import genplots as gp
+import plots
 import logging
 import model
-import pandas as pd
 import settings 
-import openpyxl
 
 
-rad2deg=  180.0/np.pi
-deg2rad=np.pi/180.0
-
-
-
-def body(Bnum,indexing,forcevec):
+def run(Bnum,indexing):
   prefix="BUOY_"
   bname=prefix+Bnum
   path = "../../generated_data/"+bname
   PD=model.readposveldata(path)  
   s=settings.settings()
-  h=s['h'];trate=s['trate']
+  h=s['h'];trate=s['trate'];forcevec=s['forcevec']
   (forcenam,folname)=gf.forcedetail(forcevec,trate,h)
   #creation of the folder for storing the simulated data.
   path=path+'/'+folname
   gf.mkdir_p(path)
-  logging.info("Model simulation started.")
   ## description of consant ice thickness or not in the simulation.
   [forcevecn,trate]=gf.icethicktyp(forcevec,trate)
   s['trate']=trate 
+  logging.info("Model simulation started.")
   PD=model.simulate(s,Bnum,indexing,forcevecn,PD)
   logging.info("Model Simulations done.")
   Xib=PD['Xib']; Yib=PD['Yib']   
   Uibvec=PD['Uibvec'];hvec=PD['hvec'];Tib=PD['Tib']
   Xis=PD['Xis']; Yis=PD['Yis'];Uisvec=PD['Uisvec']
-
-
-  ## We will do the plotting part later in postprocessing.
+  ## We will do elaborate plotting part later in postprocessing.
   logging.info("Plotting started")
-  # gp.plticevel(Uisvec,Uibvec,tmplierinv,path)
-  gp.plticepos(Xib,Yib,Xis,Yis,path)
-  logging.info("Plotting completed. Files available in:" +path)
-
+  plots.plticepos(Xib,Yib,Xis,Yis,path)
+  logging.info("Plotting completed for the buoy path.")
   ## Statistic computation.
   (XD,YD)=statscompute(s,Xib,Yib,Xis,Yis)
   (UD,VD)=statscompute(s,Uibvec[:,0],Uibvec[:,1],Uisvec[:,0],Uisvec[:,1])
   logging.info("Statistics computation done.")
-  simdata2excel(path,Bnum,forcenam,XD,YD,UD,VD,PD) 
+  # simdata2excel(path,Bnum,forcenam,XD,YD,UD,VD,PD) 
+  simdata2excl(s,path,Bnum,forcenam,XD,YD,UD,VD,PD)
   logging.info("Excel data file created for simulated data.")
   logging.info("Processing completed for buoy: "+ bname )
   gf.logcopy(path)
   logging.shutdown()
 
 
-
-
+## Functions
 ## Computation of statistics and filtering 
 #Error statistics function 
 
@@ -138,23 +128,24 @@ def statscompute(s,Xo,Yo,Xs,Ys):
 #   # Longitude  
   [tvec,Xoft,Xsft,Xofil,Xsfil]=filternFT(s,numtaps,Xo,Xs)
   #computation of tidal and coriolis frequency arguments
-  [corarg,tidearg]= tidcorargcompute(s,tvec)
-  [longtamo,longtams,longerram]=tidcorvalcompute(corarg,tidearg,Xoft[0,:],Xsft[0,:])
-  [longtpho,longtphs,longerrph]=tidcorvalcompute(corarg,tidearg,Xoft[1,:],Xsft[1,:])
+  [corargX,tideargX]= tidcorargcompute(s,tvec)
+  [longtamo,longtams,longerram]=tidcorvalcompute(corargX,tideargX,Xoft[0,:],Xsft[0,:])
+  [longtpho,longtphs,longerrph]=tidcorvalcompute(corargX,tideargX,Xoft[1,:],Xsft[1,:])
 #   # Latitude 
   [tvec,Yoft,Ysft,Yofil,Ysfil]=filternFT(s,numtaps,Yo,Ys)
   #computation of tidal and coriolis frequency arguments
-  [corarg,tidearg]= tidcorargcompute(s,tvec)
-  [lattamo,lattams,laterram]=tidcorvalcompute(corarg,tidearg,Yoft[0,:],Ysft[0,:])
-  [lattpho,lattphs,laterrph]=tidcorvalcompute(corarg,tidearg,Yoft[1,:],Ysft[1,:])  
+  [corargY,tideargY]= tidcorargcompute(s,tvec)
+  [lattamo,lattams,laterram]=tidcorvalcompute(corargY,tideargY,Yoft[0,:],Ysft[0,:])
+  [lattpho,lattphs,laterrph]=tidcorvalcompute(corargY,tideargY,Yoft[1,:],Ysft[1,:])  
   #dictionary to store all data.
   # X dict
   XD={'Xoft':Xoft,'Xofil':Xofil,'Xsft':Xsft,'Xsfil':Xsfil,
       'tamo':longtamo,'tams':longtams,'tame':longerram,
-      'tpho':longtpho,'tphs':longtphs,'tphe':longerrph,'err':errorvec}
+      'tpho':longtpho,'tphs':longtphs,'tphe':longerrph,'err':errorvec,'corarg':corargX,'tidearg':tideargX,'tft':tvec}
+      # Y dict
   YD={'Yoft':Yoft,'Yofil':Yofil,'Ysft':Ysft,'Ysfil':Ysfil,
     'tamo':lattamo,'tams':lattams,'tame':laterram,
-    'tpho':lattpho,'tphs':lattphs,'tphe':laterrph}
+    'tpho':lattpho,'tphs':lattphs,'tphe':laterrph,'corarg':corargY,'tidearg':tideargY}
   return (XD,YD)
 
 ## creating excel file of the data
@@ -163,92 +154,52 @@ def statscompute(s,Xo,Yo,Xs,Ys):
 # This function creates an excel file with all the simulation data. 
 # then this data can be used for post processing.
 
-def simdata2excel(path,Bnum,forcenam,XD,YD,UD,VD,PD):
+def valuewriter(writer,dname,dvalue,sheetname,i,j):
+  dft=pd.DataFrame({dname:dvalue})
+  dft.to_excel(writer,sheetname, startcol=i,startrow=j,index=False)
+
+
+
+def simdata2excl(s,path,Bnum,forcenam,XD,YD,UD,VD,PD):
   prefix="BUOY_"
   bname=prefix+Bnum
   fnp=['Coriolis','Ice thickness','x Air Velocity','y Air Velocity', 
       'x Tidal Velocity','y Tidal Velocity','x Ocean Velocity', 
       'y Ocean Velocity','x-PGs Ocean','y-PGs Ocean','x-PGs tides','y-PGs tides']
-  writer = pd.ExcelWriter(path+'/Simdata_'+bname+'.xlsx', engine='xlsxwriter') 
-  dft=pd.DataFrame({'Date(GMT)': PD['Tib']})
-  dfxis= pd.DataFrame({'Xis': PD['Xis']})
-  dfyis= pd.DataFrame({'Yis': PD['Yis']})
-  dfxib= pd.DataFrame({'Xib': PD['Xib']})
-  dfyib= pd.DataFrame({'Yib': PD['Yib']})
-  dfxsf= pd.DataFrame({'Xsfil': XD['Xsfil']})
-  dfysf= pd.DataFrame({'Ysfil': YD['Ysfil']})
-  dfxbf= pd.DataFrame({'Xbfil': XD['Xofil']})
-  dfybf= pd.DataFrame({'Ybfil': YD['Yofil']})
-  dfus= pd.DataFrame({'Uis': PD['Uisvec'][:,0]})
-  dfvs= pd.DataFrame({'Vis': PD['Uisvec'][:,1]})  
-  dfub= pd.DataFrame({'Uib': PD['Uibvec'][:,0]})
-  dfvb= pd.DataFrame({'Vib': PD['Uibvec'][:,1]})  
-  dfusf= pd.DataFrame({'Usfil': UD['Xsfil']})
-  dfvsf= pd.DataFrame({'Vsfil': VD['Ysfil']})
-  dfubf= pd.DataFrame({'Ubfil': UD['Xofil']})
-  dfvbf= pd.DataFrame({'Vbfil': VD['Yofil']})
-  dfh=pd.DataFrame({'Ice thickness':PD['hvec']})
-  dfe=pd.DataFrame({'Error statistics':[]})
-  dff=pd.DataFrame({'Model F&P':fnp})
-  dffv=pd.DataFrame({'Values':forcenam})
-  dfep=pd.DataFrame({'Position': ['Mean Error','RMS Error','Weighted Mean Error']})
-  dfepx=pd.DataFrame({'x': XD['err'][0,:]})
-  dfepy=pd.DataFrame({'y': XD['err'][1,:]})
-  dfepa=pd.DataFrame({'absolute': XD['err'][2,:]})
-  dfev=pd.DataFrame({'Velocity': ['Mean Error','RMS Error','Weighted Mean Error']})
-  dfevx=pd.DataFrame({'x': UD['err'][0,:]})
-  dfevy=pd.DataFrame({'y': UD['err'][1,:]})
-  dfeva=pd.DataFrame({'absolute': UD['err'][2,:]})
-  dfeft=pd.DataFrame({'Tide': ['M2','S2','MU2','O1','K1','M4']})
-  dftamolo=pd.DataFrame({'OAmpLon': np.array(list(XD['tamo'].values()))})
-  dftamslo=pd.DataFrame({'SAmpLon': np.array(list(XD['tams'].values()))})
-  dftpholo=pd.DataFrame({'OPhLon': np.array(list(XD['tpho'].values()))})
-  dftphslo=pd.DataFrame({'SPhLon': np.array(list(XD['tphs'].values()))})
-  dftamola=pd.DataFrame({'OAmpLat': np.array(list(YD['tamo'].values()))})
-  dftamsla=pd.DataFrame({'SAmpLat': np.array(list(YD['tams'].values()))})
-  dftphola=pd.DataFrame({'OPhLat': np.array(list(YD['tpho'].values()))})
-  dftphsla=pd.DataFrame({'SPhLat': np.array(list(YD['tphs'].values()))})
-  # writing 
-  dft.to_excel(writer,'Sheet1', startcol=0,startrow=0,index=False)
-  dfxis.to_excel(writer,'Sheet1', startcol=1,startrow=0,index=False)
-  dfyis.to_excel(writer,'Sheet1', startcol=2,startrow=0,index=False)
-  dfxib.to_excel(writer,'Sheet1', startcol=3,startrow=0,index=False)
-  dfyib.to_excel(writer,'Sheet1', startcol=4,startrow=0,index=False)
-  dfxsf.to_excel(writer,'Sheet1', startcol=5,startrow=0,index=False)
-  dfysf.to_excel(writer,'Sheet1', startcol=6,startrow=0,index=False) 
-  dfxbf.to_excel(writer,'Sheet1', startcol=7,startrow=0,index=False)
-  dfybf.to_excel(writer,'Sheet1', startcol=8,startrow=0,index=False)
-  dfus.to_excel(writer,'Sheet1', startcol=9,startrow=0,index=False)
-  dfvs.to_excel(writer,'Sheet1', startcol=10,startrow=0,index=False)
-  dfub.to_excel(writer,'Sheet1', startcol=11,startrow=0,index=False)
-  dfvb.to_excel(writer,'Sheet1', startcol=12,startrow=0,index=False)
-  dfusf.to_excel(writer,'Sheet1', startcol=13,startrow=0,index=False)
-  dfvsf.to_excel(writer,'Sheet1', startcol=14,startrow=0,index=False) 
-  dfubf.to_excel(writer,'Sheet1', startcol=15,startrow=0,index=False)
-  dfvbf.to_excel(writer,'Sheet1', startcol=16,startrow=0,index=False)
-  dfh.to_excel(writer,'Sheet1', startcol=17,startrow=0,index=False)
-  dff.to_excel(writer,'Sheet1', startcol=19,startrow=0,index=False)
-  dffv.to_excel(writer,'Sheet1',startcol=20,startrow=0,index=False)
-  dfe.to_excel(writer,'Sheet1',startcol=22,startrow=2,index=False)
-  dfep.to_excel(writer,'Sheet1',startcol=22,startrow=3,index=False)
-  dfepx.to_excel(writer,'Sheet1',startcol=23,startrow=3,index=False)
-  dfepy.to_excel(writer,'Sheet1',startcol=24,startrow=3,index=False)
-  dfepa.to_excel(writer,'Sheet1',startcol=25,startrow=3,index=False)
-  dfev.to_excel(writer,'Sheet1',startcol=22,startrow=7,index=False)
-  dfevx.to_excel(writer,'Sheet1',startcol=23,startrow=7,index=False)
-  dfevy.to_excel(writer,'Sheet1',startcol=24,startrow=7,index=False)
-  dfeva.to_excel(writer,'Sheet1',startcol=25,startrow=7,index=False)
-  dfeft.to_excel(writer,'Sheet1',startcol=22,startrow=12,index=False)
-  dftamolo.to_excel(writer,'Sheet1',startcol=23,startrow=12,index=False)
-  dftamslo.to_excel(writer,'Sheet1',startcol=24,startrow=12,index=False)
-  dftpholo.to_excel(writer,'Sheet1',startcol=25,startrow=12,index=False)
-  dftphslo.to_excel(writer,'Sheet1',startcol=26,startrow=12,index=False)
-  dftamola.to_excel(writer,'Sheet1',startcol=27,startrow=12,index=False)
-  dftamsla.to_excel(writer,'Sheet1',startcol=28,startrow=12,index=False)
-  dftphola.to_excel(writer,'Sheet1',startcol=29,startrow=12,index=False)
-  dftphsla.to_excel(writer,'Sheet1',startcol=30,startrow=12,index=False)
+  dnamevecs1=['Date(GMT)','Xis','Yis','Xib','Yib','Xsfil','Ysfil','Xbfil','Ybfil',
+            'Uis','Vis','Uib','Vib','Usfil','Vsfil','Ubfil','Vbfil','Ice thickness',
+            'Model F&P','Values','Error statistics','Position','x','y','absolute','Velocity','x','y','absolute']
+  dvaluevecs1=[PD['Tib'],PD['Xis'],PD['Yis'],PD['Xib'],PD['Yib'],XD['Xsfil'],YD['Ysfil'],XD['Xofil'],YD['Yofil'],
+            PD['Uisvec'][:,0],PD['Uisvec'][:,1],PD['Uibvec'][:,0],PD['Uibvec'][:,1],UD['Xsfil'],VD['Ysfil'],UD['Xofil'],VD['Yofil'],
+            PD['hvec'],fnp,forcenam,[],['Mean Error','RMS Error','Weighted Mean Error'],XD['err'][0,:],XD['err'][1,:],XD['err'][2,:],
+            ['Mean Error','RMS Error','Weighted Mean Error'],UD['err'][0,:],UD['err'][1,:], UD['err'][2,:]]
+  colvecs1=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19,20,22,22,23,24,25,22,23,24,25]
+  rowvecs1=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,3,3,3,7,7,7,7]
+  writer = pd.ExcelWriter(path+'/Simdata_'+bname+'.xlsx',engine='xlsxwriter') 
+  for i in range(len(dnamevecs1)):
+    valuewriter(writer,dnamevecs1[i],dvaluevecs1[i],'Model_Data',colvecs1[i],rowvecs1[i])
+
+  dnamevecs2=['Xsam','Ysam','Xsph','Ysph','Xbam','Ybam','Xbph','Ybph',
+              'Usam','Vsam','Usph','Vsph','Ubam','Vbam','Ubph','Vbph','Tft',
+              'Tide','BAmpLon','SAmpLon','BPhLon','SPhLon',
+              'BAmpLat','SAmpLat','BPhLat','SPhLat','tideargLon','tideargLat','corarglon','corarglat']
+  dvaluevecs2=[XD['Xsft'][0,:],YD['Ysft'][0,:],XD['Xsft'][1,:],YD['Ysft'][1,:],
+              XD['Xoft'][0,:],YD['Yoft'][0,:],XD['Xoft'][1,:],YD['Yoft'][1,:],
+              UD['Xsft'][0,:],VD['Ysft'][0,:],UD['Xsft'][1,:],VD['Ysft'][1,:],
+              UD['Xoft'][0,:],VD['Yoft'][0,:],UD['Xoft'][1,:],VD['Yoft'][1,:],XD['tft'],
+              np.array(list(s['tidedict'].keys())),np.array(list(XD['tamo'].values())),
+              np.array(list(XD['tams'].values())),np.array(list(XD['tpho'].values())),
+              np.array(list(XD['tphs'].values())),np.array(list(YD['tamo'].values())),
+              np.array(list(YD['tams'].values())),np.array(list(YD['tpho'].values())),
+              np.array(list(YD['tphs'].values())),XD['tidearg'],YD['tidearg'],XD['corarg'],YD['corarg']]
+  colvecs2=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+  rowvecs2=(np.zeros(len(colvecs2),dtype=int))
+  for i in range(len(dnamevecs2)):
+    valuewriter(writer,dnamevecs2[i],dvaluevecs2[i],'FT_Data',colvecs2[i],rowvecs2[i])
+  # writer.save()
   workbook  = writer.book
-  worksheet = writer.sheets['Sheet1']
+  # worksheet1 = writer.sheets['Model_Data']
+  # worksheet2 = writer.sheets['FT_Data']
   merge_format = workbook.add_format({
                     'bold': 1,
                     'border': 1,
@@ -256,7 +207,6 @@ def simdata2excel(path,Bnum,forcenam,XD,YD,UD,VD,PD):
                     'valign': 'vcenter',
                      })
   workbook.close()
-
 
 
 
