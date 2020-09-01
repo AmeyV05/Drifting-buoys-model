@@ -191,7 +191,9 @@ def simdata2excl(s,path,Bnum,forcenam,XD,YD,UD,VD,PD):
               np.array(list(XD['tams'].values())),np.array(list(XD['tpho'].values())),
               np.array(list(XD['tphs'].values())),np.array(list(YD['tamo'].values())),
               np.array(list(YD['tams'].values())),np.array(list(YD['tpho'].values())),
-              np.array(list(YD['tphs'].values())),XD['tidearg'],YD['tidearg'],XD['corarg'],YD['corarg']]
+              np.array(list(YD['tphs'].values())),np.array(list(XD['tidearg'].values())),
+              np.array(list(YD['tidearg'].values())),np.array(list(XD['corarg'].values())),
+              np.array(list(YD['corarg'].values()))]
   colvecs2=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
   rowvecs2=(np.zeros(len(colvecs2),dtype=int))
   for i in range(len(dnamevecs2)):

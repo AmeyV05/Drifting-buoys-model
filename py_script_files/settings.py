@@ -1,5 +1,4 @@
-# general_Settings_for model simulations
-
+# general_settings_for model simulations
 
 import numpy as np
 import logging 
@@ -15,9 +14,9 @@ def settings():
 	s['days']   = 24.0*s['hours']
 	s['rad2deg']= 180.0/np.pi
 	s['deg2rad']= np.pi/180.0
-	s['thetaa'] = 0*s['deg2rad']#angle made by geostrophic wind with ice velocity.
+	s['thetaa'] = 0*s['deg2rad']#angle made by wind with ice velocity.
 	s['beta']=25*s['deg2rad']
-	s['thetaw'] = 0*s['deg2rad']                       #np.pi - s['beta']
+	s['thetaw'] = 0*s['deg2rad']                       
 	s['omega']  = (2.0*np.pi)/(24.0*s['hours'])
 	s['tmplier']=1/30
 	s['dt'] = 15*s['tmplier']*s['minutes']
@@ -38,5 +37,5 @@ def settings():
 	s['cordict']={'deg1':74.7,'deg2':79}  #latitude for coriolis
 	# This describes which forces and parameters are included. 
 	#forcevec=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  # 1 is on and 0 is off
-	s['forcevec']=[1,1,1,1,1,1,1,1,1,1,1,1]
+	s['forcevec']=[0,1,1,1,1,1,1,1,1,1,1,1]
 	return(s)

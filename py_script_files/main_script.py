@@ -7,6 +7,7 @@ import processingdata
 import readingdata 
 import logging
 import generalfunc as gf
+import settings
 import datetime
 import os
 import sys
@@ -66,7 +67,7 @@ def preprocess(Bnum,sdate,indexing):
     logging.info("Pre-processing completed.")
 
 def main():
-	#This is just for trial
+	s=settings.settings()
 	indexing=buoyselect(Bnum,sdate)
 	if Prepro=='1':
 		logging.info("Pre-processing started.")

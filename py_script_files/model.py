@@ -4,8 +4,8 @@
 import numpy as np 
 import pandas as pd 
 import generalfunc as gf
-import settings
 import logging
+import settings
 rad2deg=180.0/np.pi
 deg2rad=np.pi/180.0
 

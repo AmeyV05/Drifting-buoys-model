@@ -113,6 +113,39 @@ def pltfilsig(p1_x,p_xfilter,p_xresiduum,path,name):
   plt.close(fig)
 
 
+def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,labelname):
+  llim=0;ulim=spindex
+  Y=np.zeros(len(Usres))
+  fig=plt.figure(figsize=(15,4),frameon=True)
+  ax1=plt.subplot(2,1,1)
+  Tib=T[llim:ulim]
+  ax1.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='blue',label=labelname[0])
+  ax1.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='red',label=labelname[1])
+  ax1.set_xlabel('Time',labelpad=0.05,fontsize=4, fontweight='bold')
+  ax1.set_ylabel('Residual vel. vect.',labelpad=0.05,fontsize=4, fontweight='bold')
+  labels=Tib[::96]
+  plt.xticks(labels, labels, rotation='0',fontsize=4)
+  plt.yticks(fontsize=4)
+  plt.ylim([-ylim,ylim])
+  ax1.legend(fontsize=4)
+  llim=spindex;ulim=-1
+  Tib=T[llim:ulim]
+  ax2=plt.subplot(2,1,2)
+  ax2.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='blue',label=labelname[0])
+  ax2.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='red',label=labelname[1])
+  ax2.set_xlabel('Time',labelpad=0.05,fontsize=4, fontweight='bold')
+  ax2.set_ylabel('Residual vel. vect.',labelpad=0.05,fontsize=4, fontweight='bold')
+  ax2.legend(fontsize=4)
+  labels=Tib[::96]
+  plt.xticks(labels, labels, rotation='0',fontsize=4)
+  plt.yticks(fontsize=4)
+  plt.ylim([-ylim,ylim])
+  plt.savefig(loc+name+'tidal_vel_vect.jpg',format='jpg',dpi=600)
+  plt.close(fig)
+
+
+
+
 
 # functions used to label x and y axis in cartopy for lambert conformal projections. 
 # Adopted from cartopy github
@@ -180,3 +213,43 @@ def _lambert_ticks(ax, ticks, tick_location, line_constructor, tick_extractor):
     return _ticks, ticklabels
 
 
+
+## old function
+# def pltvelquiver(loc,bname,Tib,Usres,Vsres,Ubres,Vbres):
+
+#     def splt(llim,ulim,ax):
+#         Y=np.zeros(len(Usres))
+#         Tib1=Tib[llim:ulim]
+#         ax.quiver(Tib1,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.002,color='blue',label='sim')
+#         ax.quiver(Tib1,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.002,color='red',label='obs')
+#         # plt.quiver(Tib1,Y[llim:ulim],Ut[llim:ulim],Vt[llim:ulim],scale=1,scale_units='inches',width=0.002,color='green',label='tidal_cur')
+#         # plt.quiver(Tib1,-Pgyt[llim:ulim],+Pgxt[llim:ulim],scale=2,scale_units='inches',color='magenta',label='-pgtid')
+#         labels=Tib1[::96] 
+#         plt.xticks(labels, labels, rotation='7.5',fontsize=4)
+#         plt.ylim([-1.3,1.3])
+
+#     m=2;n=7
+#     fig=plt.figure(figsize=(15,4),frameon=True) 
+#     llim=0
+#     for i in range(m*n):
+#         j=i+1
+#         if j==1:       
+#             ulim=llim+288
+#             ax0=plt.subplot(m,n,j)
+#             splt(llim,ulim,ax0)  
+#             ax0.legend(fontsize=4)
+#             ax0.set_xlabel('Time',labelpad=0.05,fontsize=4, fontweight='bold')
+#             ax0.set_ylabel('Residual vel. vect.',labelpad=0.05,fontsize=4, fontweight='bold')
+#             plt.yticks(fontsize=4)
+#             llim=ulim
+#         else:
+#             ulim=llim+288
+#             ax=plt.subplot(m,n,j,sharey=ax0)
+#             splt(llim,ulim,ax)  
+#             plt.setp(ax.get_yticklabels(), visible=False)
+#             yticks = ax.yaxis.get_major_ticks()
+#             yticks[-1].label1.set_visible(False)
+#             llim=ulim      
+#     plt.subplots_adjust(wspace=.0)
+#     plt.savefig(loc+bname+'tidal_vel_vect.jpg',format='jpg',dpi=600)
+#     plt.close(fig)
