@@ -11,11 +11,8 @@ import settings
 
 # buoy number input.
 
-def readsimdata(Bnum):
+def readsimdata(Bnum,folname):
 	bname='BUOY_'+Bnum
-	s=settings.settings()
-	forcevec=s['forcevec'];h=s['h'];trate=s['trate']
-	(forcenam,folname)=gf.forcedetail(forcevec,trate,h)
 	loc='../../generated_data/'+bname+'/'+folname+'/'
 	file='simdata_'+bname+'.xlsx'
 	df=pd.read_excel(loc+file,'Model_Data')
@@ -62,5 +59,29 @@ def readsimdata(Bnum):
 		'BAmpLat':np.array(df['BAmpLat'][0:6]),'SAmpLat':np.array(df['SAmpLat'][0:6]),
 		'BPhLat':np.array(df['BPhLat'][0:6]),'SPhLat':np.array(df['SPhLat'][0:6]),
 		'tidearg':np.array(df['tideargLon'][0:6],dtype=int),'corarg':np.array(df['corarglon'][0:2],dtype=int),
+		'BAmpU':np.array(df['BAmpU'][0:6]),'SAmpU':np.array(df['SAmpU'][0:6]),
+		'BPhU':np.array(df['BPhU'][0:6]),'SPhU':np.array(df['SPhU'][0:6]),
+		'BAmpV':np.array(df['BAmpV'][0:6]),'SAmpV':np.array(df['SAmpV'][0:6]),
+		'BPhV':np.array(df['BPhV'][0:6]),'SPhV':np.array(df['SPhV'][0:6]),
+		'tidearg':np.array(df['tideargU'][0:6],dtype=int),'corarg':np.array(df['corargU'][0:2],dtype=int),
 		'T':T,'hi':hi}
 	return(SD)
+
+
+def readallbuoy(folder):
+    BD={}
+    for f in os.listdir(folder):
+        if f!='BUOY_06.csv':
+            strfile=folder+'/'+f
+            buoy=os.path.basename(strfile)
+            bname=buoy.split('.')[0]
+            xbname=bname.split('_')[1]+'_x'
+            ybname=bname.split('_')[1]+'_y'
+            Tbname=bname.split('_')[1]+'_t'
+            D=pd.read_csv(strfile)
+            Xib=np.array(D['Lon'])[96:]
+            Yib=np.array(D['Lat'])[96:]
+            Tib=np.array(D['Date(GMT)'])[96:]
+            BD[xbname]= Xib; BD[ybname]=Yib
+            BD[Tbname]=Tib
+    return(BD)

@@ -1,7 +1,9 @@
-# general_settings_for model simulations
+global forcevec
+forcevec=[1,1,0,0,0,0,0,0,1,1,1,1]
+# This describes which forces and parameters are included. 
+#forcevec=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  # 1 is on and 0 is off
 
 import numpy as np
-import logging 
 def settings():
 	s=dict()
 	s['rho_ice'] = 920.0
@@ -31,11 +33,8 @@ def settings():
 	s['en']=s['n']+2*(1+s['l']*int(1/s['tmplier'])) #number of elements of extended state vector +2 is for Nu and Nv
 	# s['en']=s['n']+2+2
 	s['mod']='RungeKutta2'   #'ExplicitEuler'
-	s['tidepg']='GTSM'    #'FES2014'
+	s['tidepg']= 'FES2014'  #'GTSM'    #
 	s['icethck']='modeldef'  #'owndef'
 	s['tidedict']= {'M4':6.2103,'S2':12.,'M2':12.421,'MU2':12.871,'K1':23.934,'O1':25.819}
 	s['cordict']={'deg1':74.7,'deg2':79}  #latitude for coriolis
-	# This describes which forces and parameters are included. 
-	#forcevec=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt]  # 1 is on and 0 is off
-	s['forcevec']=[0,1,1,1,1,1,1,1,1,1,1,1]
 	return(s)

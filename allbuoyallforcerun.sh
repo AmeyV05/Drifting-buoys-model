@@ -19,13 +19,8 @@ export preprocess=0
 
 for i in 02 03 09 13 14 16 
 do
-  if [ $preprocess == 1 ]
-  then
-    echo "Running for... i is set to $i with preprocessing."
-  else
-    echo "Running for... i is set to $i without preprocessing."
-  fi
+  echo "Running for... i is set to $i."
   buoy=$i  
-  python main_script.py $buoy $preprocess
+  python allforcerun.py $buoy 
 done
 

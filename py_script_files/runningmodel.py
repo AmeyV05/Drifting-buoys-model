@@ -16,7 +16,7 @@ def run(Bnum,indexing):
   path = "../../generated_data/"+bname
   PD=model.readposveldata(path)  
   s=settings.settings()
-  h=s['h'];trate=s['trate'];forcevec=s['forcevec']
+  h=s['h'];trate=s['trate'];forcevec=settings.forcevec
   (forcenam,folname)=gf.forcedetail(forcevec,trate,h)
   #creation of the folder for storing the simulated data.
   path=path+'/'+folname
@@ -182,7 +182,9 @@ def simdata2excl(s,path,Bnum,forcenam,XD,YD,UD,VD,PD):
   dnamevecs2=['Xsam','Ysam','Xsph','Ysph','Xbam','Ybam','Xbph','Ybph',
               'Usam','Vsam','Usph','Vsph','Ubam','Vbam','Ubph','Vbph','Tft',
               'Tide','BAmpLon','SAmpLon','BPhLon','SPhLon',
-              'BAmpLat','SAmpLat','BPhLat','SPhLat','tideargLon','tideargLat','corarglon','corarglat']
+              'BAmpLat','SAmpLat','BPhLat','SPhLat','tideargLon','tideargLat','corarglon','corarglat',
+              'BAmpU','SAmpU','BPhU','SPhU',
+              'BAmpV','SAmpV','BPhV','SPhV','tideargU','tideargV','corargU','corargV']
   dvaluevecs2=[XD['Xsft'][0,:],YD['Ysft'][0,:],XD['Xsft'][1,:],YD['Ysft'][1,:],
               XD['Xoft'][0,:],YD['Yoft'][0,:],XD['Xoft'][1,:],YD['Yoft'][1,:],
               UD['Xsft'][0,:],VD['Ysft'][0,:],UD['Xsft'][1,:],VD['Ysft'][1,:],
@@ -193,8 +195,15 @@ def simdata2excl(s,path,Bnum,forcenam,XD,YD,UD,VD,PD):
               np.array(list(YD['tams'].values())),np.array(list(YD['tpho'].values())),
               np.array(list(YD['tphs'].values())),np.array(list(XD['tidearg'].values())),
               np.array(list(YD['tidearg'].values())),np.array(list(XD['corarg'].values())),
-              np.array(list(YD['corarg'].values()))]
-  colvecs2=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+              np.array(list(YD['corarg'].values())),np.array(list(UD['tamo'].values())),
+              np.array(list(UD['tams'].values())),np.array(list(UD['tpho'].values())),
+              np.array(list(UD['tphs'].values())),np.array(list(VD['tamo'].values())),
+              np.array(list(VD['tams'].values())),np.array(list(VD['tpho'].values())),
+              np.array(list(VD['tphs'].values())),np.array(list(UD['tidearg'].values())),
+              np.array(list(VD['tidearg'].values())),np.array(list(UD['corarg'].values())),
+              np.array(list(VD['corarg'].values()))]
+  colvecs2=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,
+            30,31,32,33,34,35,36,37,38,39,40,41]
   rowvecs2=(np.zeros(len(colvecs2),dtype=int))
   for i in range(len(dnamevecs2)):
     valuewriter(writer,dnamevecs2[i],dvaluevecs2[i],'FT_Data',colvecs2[i],rowvecs2[i])

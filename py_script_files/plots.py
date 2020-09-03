@@ -143,6 +143,39 @@ def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,labelname):
   plt.savefig(loc+name+'tidal_vel_vect.jpg',format='jpg',dpi=600)
   plt.close(fig)
 
+def pltallbuoytracks(loc,BD):
+  Buoys=['02','03','09','07','12','13','14','16']
+  fig=plt.figure(figsize=(12, 12), frameon=True)
+  ax=plt.axes(projection=ccrs.LambertAzimuthalEqualArea(central_longitude=25.0,central_latitude=77.0)) 
+  ax.set_extent([16,28,74.5,80])
+  colors=['red','green','magenta','darkblue','lime','orange','yellow','olive']
+  fig.canvas.draw()
+  xticks = [ 0, 4, 12, 16, 20, 24, 28, 32, 36]
+  yticks = [72, 74.5, 77, 79.5, 82]
+  ax.gridlines(xlocs=xticks, ylocs=yticks)
+  # Label the end-points of the gridlines using the custom tick makers:
+  ax.xaxis.set_major_formatter(LONGITUDE_FORMATTER) 
+  ax.yaxis.set_major_formatter(LATITUDE_FORMATTER)
+  lambert_xticks(ax, xticks)
+  lambert_yticks(ax, yticks)
+  i=0;pt=96*1
+  for b in Buoys:
+      # Plotting b-uoy obs and buoy simulated locations
+      Xib=BD[b+'_x'];Yib=BD[b+'_y']
+      plt.scatter(Xib[pt],Yib[pt],color='black',transform=ccrs.PlateCarree())
+      plt.text(Xib[pt],Yib[pt], b, transform=ccrs.PlateCarree(),fontsize=15,fontweight='bold')
+      plt.plot(Xib[pt:],Yib[pt:],color=colors[i],transform=ccrs.PlateCarree(),label=b)
+      i+=1
+  # gebco wms background 
+  service='https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?'
+  ax.add_wms(service,layers=['GEBCO_LATEST'],wms_kwargs={'width':900*2,'height':600*2})
+  feature=cpf.GSHHSFeature(scale='i',levels=[1],facecolor='#e6e1e1',alpha=1)
+  ax.add_feature(feature) 
+  plt.savefig(loc+'/allbuoytracks.jpg',format='jpg',dpi=600)
+  plt.close(fig) 
+  
+
+
 
 
 

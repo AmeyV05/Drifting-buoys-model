@@ -7,14 +7,13 @@ import processingdata
 import readingdata 
 import logging
 import generalfunc as gf
-import settings
 import datetime
 import os
 import sys
 
-# system arguments for running main script.
-Bnum = sys.argv[1]
-Prepro =sys.argv[2]
+# # system arguments for running main script.
+# Bnum = sys.argv[1]
+# Prepro =sys.argv[2]
 # 
 ### creating of log file for the run. 
 # Create a folder for generated_data
@@ -66,8 +65,7 @@ def preprocess(Bnum,sdate,indexing):
     processingdata.processingdata(Bnum,indexing,FD,sdate)
     logging.info("Pre-processing completed.")
 
-def main():
-	s=settings.settings()
+def main(Bnum,Prepro):
 	indexing=buoyselect(Bnum,sdate)
 	if Prepro=='1':
 		logging.info("Pre-processing started.")
@@ -77,5 +75,5 @@ def main():
 	runningmodel.run(Bnum,indexing)
 
 if __name__ == '__main__':
-	main()
-
+	# bnum is argv[1] and Prepro is argv[2]
+	sys.exit(main(sys.argv[1], sys.argv[2]))
