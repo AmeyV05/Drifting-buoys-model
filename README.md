@@ -6,19 +6,6 @@ https://doi.org/10.5194/egusphere-egu2020-7544
 
 The python based code produces simulation output for free drift ice motion and compares it with buoy drift. The generated data is stored in the folder "generated_data"
 
-To run the program, copy/clone the entire repository locally to your system.
-On the command prompt, open the folder py_scripts. 
-Run the file "main_script.py" by typing "python main_script.py"
-
-Please note that you need the following softwares/packages:
-
-1. Python 3.6 
-2. Netcdf4  
-3. Pandas
-3. Cartopy (plotting on a world map)
-
-It is assumed that you already have numpy and scipy packages installed within python. 
-
 
 Note that one should be connected to the Deltares P: project directory for the code to successfully run.
 One needs access to the folders: 
