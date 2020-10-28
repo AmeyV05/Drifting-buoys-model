@@ -4,6 +4,7 @@
 import numpy as np
 import runningmodel 
 import processingdata 
+# import processingdata_old
 import readingdata 
 import logging
 import generalfunc as gf
@@ -26,7 +27,8 @@ gf.logcreate(gendataloc)
 ###Simulation start date.
 #We need to provide a start date for the simulation. The  buoy data are available from 15th March, 2014.
 # To limit the amount of data generated and increase the speed of the code we pre-process the data also from the given start date.
-sdate=96*16   #96 corresponds to 1 day. As the data is in interval of 15mins.
+#sdate=96*16   #96 corresponds to 1 day. As the data is in interval of 15mins.
+sdate=96*16
 osdte = datetime.datetime(2014, 3, 15)
 dt=datetime.timedelta(minutes=int(sdate*15))
 sdte=osdte+dt
@@ -47,7 +49,8 @@ def buoyselect(Bnum,sdate):
 		# '12':3024, buoy stuck in the area. Doesn't move ahead.
 		'13':2524,
 		'14':2136,
-		'16':5952
+		'16':5952,
+		# '09':2168
 			}
 	indexing=switcher.get(Bnum,"Invalid Buoy number")-sdate
 	return(indexing)

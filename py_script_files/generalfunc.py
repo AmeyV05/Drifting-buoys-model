@@ -30,12 +30,27 @@ def logcreate(gendataloc):
   logging.disable(logging.DEBUG)
 
 # A conversion function to convert the latitudes and longitudes to meteres.
-# note that this is a simple conversion formula and not very accurate
+# note that this is a simple conversion formula and not very accurate older version.
 def latlon2meters(lat,dlat,dlon):
+  #lat and lon are changes in lat and lon in deg
+  dlatm=dlat*111.32e03
+  dlonm=dlon*40075e03*np.cos(deg2rad*lat)/360
+  return(dlatm,dlonm)
+
+# function calculates the changes in lat and lon in meters in x and y directions. 
+def latlon2meters2(lat,lon,dlat,dlon):
  #lat and lon are changes in lat and lon in deg
- dlatm=dlat*111.32e03
- dlonm=dlon*40075e03*np.cos(deg2rad*lat)/360
- return(dlatm,dlonm)
+  R = 6378.137
+  lat2=dlat+lat;lon2=dlon+lon
+  # starting with longitude change only the dlat is zero. 
+  alon =np.cos(lat*deg2rad) * np.cos(lat2 *deg2rad) * np.sin((dlon/2)*deg2rad)**2
+  clon = 2 * np.arctan2(np.sqrt(alon), np.sqrt(1-alon))
+  dlonm = R * clon * 1000
+  # latitude change only, so dlon is zero
+  alat =np.sin((dlat/2)*deg2rad)**2
+  clat = 2 * np.arctan2(np.sqrt(alat), np.sqrt(1-alat))
+  dlatm = R * clat * 1000
+  return(dlatm,dlonm)
 
 #conversion of meters to latitude longitude and coriolis calculator
 # conversion of meters to latitude longitude.
@@ -47,7 +62,7 @@ def m2latlon(lat,dlonm,dlatm):
 
 def rotmatrix(phi):
   #this function creates a rotation matrix phi is in rad.
-  R=np.array([[np.cos(phi),np.sin(phi)],[-np.sin(phi),np.cos(phi)]])
+  R=np.array([[np.cos(phi),-np.sin(phi)],[np.sin(phi),np.cos(phi)]])
   return(R)
 
 def num2datetimesecs(y,m,d,sindex,eindex,tvec):
@@ -115,14 +130,16 @@ def forcedetail(Cor,trate,hs):
   Pgyo=Pgxo
   Pgxt='Yes' if Cor[10]==1 else 'No' #pressure gradients tides
   Pgyt=Pgxt
-  Cornam=[f,h,Uax,Uay,Utx,Uty,Uox,Uoy,Pgxo,Pgyo,Pgxt,Pgyt]
+  Bfx='Yes' if Cor[12]==1 else 'No' #bottom friction
+  Bfy=Bfx
+  Cornam=[f,h,Uax,Uay,Utx,Uty,Uox,Uoy,Pgxo,Pgyo,Pgxt,Pgyt,Bfx,Bfy]
   #Folder name for storing the data.
   folname='h'+str(Cor[1])+'f'+str(Cor[0])+ \
           'A'+str(Cor[2])+'T'+str(Cor[4])+ \
-          'O'+str(Cor[6])+'Po'+str(Cor[8])+'Pt'+str(Cor[10]) if Cor[1]!='v' else \
+          'O'+str(Cor[6])+'Po'+str(Cor[8])+'Pt'+str(Cor[10])+'Bf'+str(Cor[12]) if Cor[1]!='v' else \
           'h'+str(hs)+str(Cor[1])+str(trate)[1:4]+'f'+str(Cor[0])+ \
           'A'+str(Cor[2])+'T'+str(Cor[4])+ \
-          'O'+str(Cor[6])+'Po'+str(Cor[8])+'Pt'+str(Cor[10])
+          'O'+str(Cor[6])+'Po'+str(Cor[8])+'Pt'+str(Cor[10])+str(Cor[10])+'Bf'+str(Cor[12]) 
   return(Cornam,folname)
 
 #function to copy the log file to the folder of simulations.

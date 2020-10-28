@@ -22,33 +22,33 @@ def forcevecedit(fvec):
 		# print(lines[0:2])
 
 
-
-
 def main2(Bnum):
-	fvec='[1,1,1,1,1,1,1,1,1,1,1,1]'
+	fvec='[1,1,1,1,1,1,1,1,1,1,1,1,0,0]'
 	forcevecedit(fvec)
 	importlib.reload(settings)
-	main_script.main(Bnum,0)
-	fveclist=['1','1','1','1','1','1','1','1','1','1','1','1']
+	# 0 is for preprocess off and 1 is for on.
+	main_script.main(Bnum,'0')
+	fveclist=['1','1','1','1','1','1','1','1','1','1','1','1','0','0']
 	for i in range(len(fveclist)):
-		fveclist=['1','1','1','1','1','1','1','1','1','1','1','1']
-		if (i%2==0 and i!=0):
+		fveclist=['1','1','1','1','1','1','1','1','1','1','1','1','0','0']
+		if (i%2==0 and i!=0 and i!=12):
 			fveclist[i]='0'
 			fveclist[i+1]='0'
 			fvecn='['+','.join(fveclist)+']'
 			print(fvecn)
 			forcevecedit(fvecn)
 			importlib.reload(settings)
-			main_script.main(Bnum,0)
+			# 0 is for preprocess off and 1 is for on.
+			main_script.main(Bnum,'0')
 		elif (i==0):
 			fveclist[i]='0'
 			fvecn='['+','.join(fveclist)+']'
 			print(fvecn)
 			forcevecedit(fvecn)
 			importlib.reload(settings)
-			main_script.main(Bnum,0)
+			main_script.main(Bnum,'0')
 			
-	fvec='[1,1,1,1,1,1,1,1,1,1,1,1]'
+	fvec='[1,1,1,1,1,1,1,1,1,1,1,1,0,0]'
 	forcevecedit(fvec)
 
 main2(sys.argv[1])

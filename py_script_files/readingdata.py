@@ -9,8 +9,8 @@ import logging
 ### wW define different set of functions to read the different nc files. 
 # The GTSM map file is truncated to get data between. 0-40 deg lon and 70-80 deg latitude.
 
-def read_GTSM_map(file):
-	GTSM_data= nc4.Dataset(file)
+def read_GTSM_map(file1,file2):
+	GTSM_data= nc4.Dataset(file1)
 	gtsm_grp=GTSM_data.groups['GTSM Tidal truncated data']
 	Xt=np.array(gtsm_grp.variables["FlowElem_xcc"]) #X is longitdue and Y is latitude
 	Yt=np.array(gtsm_grp.variables["FlowElem_ycc"])
@@ -18,8 +18,11 @@ def read_GTSM_map(file):
 	Ut=np.array(gtsm_grp.variables["ucx"])
 	Vt=np.array(gtsm_grp.variables["ucy"])
 	ssht=np.array(gtsm_grp.variables["s1"]) #sea surface heights.
+	GTSM_data= nc4.Dataset(file2)
+	gtsm_grp=GTSM_data.groups['GTSM Tidal truncated data']
+	wdt=np.array(gtsm_grp.variables["waterdepth"])
 	logging.info("Completed reading GTSM data")
-	return (Xt,Yt,Ut,Vt,ssht,Tt)
+	return (Xt,Yt,Ut,Vt,ssht,wdt,Tt)
  
 
 #reading ERA5 winds data
@@ -70,7 +73,7 @@ def read_FES(file,Bnum):
 				 '09':[1.2,0.24],
 				 '13':[1.2,0.24],
 				 '14':[1.0,0.2],
-				 '16':[1.5,0.24]}
+				 '16':[1.2,0.24]}
 	dlonlat=switcher.get(Bnum,"Invalid Buoy number")
 	efile=file+Bnum+"e.nc"
 	fesdatae=nc4.Dataset(efile)
@@ -112,7 +115,8 @@ def read_bdata(file,Bnum):
 	for j in range(len(Xib)-1):
 		dlon=Xib[j+1]-Xib[j]
 		dlat=Yib[j+1]-Yib[j]
-		lat=Yib[j]
+		lat=Yib[j];lon=Xib[j]
+		# (dlatm,dlonm)=gf.latlon2meters(lat,lon,dlat,dlon)
 		(dlatm,dlonm)=gf.latlon2meters(lat,dlat,dlon)
 		Uib=np.append(Uib,(dlonm)/dt)
 		Vib=np.append(Vib,(dlatm)/dt)
@@ -133,9 +137,10 @@ def readingdata(fileloc,Bnum):
 
 	#####GTSM data
 	logging.info("Reading GTSM data")
-	file=fileloc+"/GTSM_final_truncated.nc"
-	[Xt,Yt,ut,vt,ssht,Tt]=read_GTSM_map(file)
-	TD={'Xt': Xt,'Yt': Yt,'ut': ut,'vt': vt,'ssht': ssht,'Tt': Tt}
+	file1=fileloc+"/GTSM_final_truncated.nc"
+	file2=fileloc+"/gtsm_truncated_wd.nc"
+	[Xt,Yt,ut,vt,ssht,wdt,Tt]=read_GTSM_map(file1,file2)
+	TD={'Xt': Xt,'Yt': Yt,'ut': ut,'vt': vt,'ssht': ssht,'wdt':wdt,'Tt': Tt}
 
 	#### ERA 5 winds
 	logging.info("Reading ERA5 wind data.")

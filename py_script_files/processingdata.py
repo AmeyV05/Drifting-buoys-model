@@ -5,11 +5,17 @@ import pandas as pd
 import numpy as np
 import scipy.io
 from scipy.interpolate import interp2d
-from scipy.interpolate import Rbf
+from scipy.interpolate import griddata
+import pykrige.kriging_tools as kt
+from pykrige.ok import OrdinaryKriging
 import generalfunc as gf
+import settings
 import logging
 import os
 
+s=settings.settings()
+g=s['g']
+omega=s['omega']
 def processall(Bnum,indexing,FD,sdate):
     prefix="BUOY_"
     bname=prefix+Bnum
@@ -48,7 +54,8 @@ def processall(Bnum,indexing,FD,sdate):
     for i in range(arrlen):
         dhxt=tht[i,0]-tht[i,1]
         dhyt=tht[i,2]-tht[i,3]
-        lat=Yib[i]
+        lat=Yib[i];lon=Xib[i]
+        # (dy,dx)=gf.latlon2meters(lat,lon,fdlat,fdlon)
         (dy,dx)=gf.latlon2meters(lat,fdlat,fdlon)
         dzdx=dhxt/dx;dzdy=dhyt/dy
         Fpgx=np.append(Fpgx,dzdx)
@@ -63,44 +70,62 @@ def processall(Bnum,indexing,FD,sdate):
     TD=FD['TD']
     Xt=TD['Xt']; Yt=TD['Yt']
     ut=TD['ut']; vt=TD['vt']
-    Tt=TD['Tt']; ssht=TD['ssht']
+    Tt=TD['Tt']; ssht=TD['ssht'] ;wdt=TD['wdt']
     Tt=gf.num2datetimesecs(2014,3,1,sindex,eindex,Tt)
-    ut=ut[sindex:eindex,:];vt=vt[sindex:eindex,:];ssht=ssht[sindex:eindex,:]
+    ut=ut[sindex:eindex,:];vt=vt[sindex:eindex,:];ssht=ssht[sindex:eindex,:];wdt=wdt[sindex:eindex,:]
 
     logging.info("Interpolating GTSM data to buoy locations....")
     # processing of gtsm data
     #interpolating the u and v velocities to the buoy locations.
     Buoy_Xi=Xib; Buoy_Yi=Yib#buoy longitude (x position)
-    Ut=[];Vt=[];Pgxt=[];Pgyt=[]
+    Ut=[];Vt=[];Pgxt=[];Pgyt=[];Pgxtr=[];Pgytr=[];Pgxtl=[];Pgytl=[];WDt=[];sshtvec=[];Utg=[];Vtg=[]
+    dlat=0.04;dlon=0.16
     for i in range(arrlen):
-        ut_time=ut[i,:];vt_time=vt[i,:];ssht_time=ssht[i,:]
+        ut_time=ut[i,:];vt_time=vt[i,:];ssht_time=ssht[i,:];wdt_time=wdt[i,:]
         xk=Buoy_Xi[i];yk=Buoy_Yi[i]
-        box_x1=xk-0.45;box_x2=xk+0.45  # box of 0.9 lon length and 0.3 lat height to snap obs in that area for computing interpolation.
-        box_y1=yk-0.15;box_y2=yk+0.15
+        box_x1=xk-1;box_x2=xk+1 # box of 4 lon length and 1 lat height to snap obs in that area for computing interpolation.
+        box_y1=yk-0.25;box_y2=yk+0.25
         j1=np.where(Xt>=box_x1,Xt,0);j2=np.where(Xt<=box_x2,j1,0)
         i1=np.where(Yt>=box_y1,Yt,0);i2=np.where(Yt<=box_y2,i1,0)
         Xtn=[];Ytn=[]
-        ut_ti=[];vt_ti=[];ssht_ti=[]
+        ut_ti=[];vt_ti=[];ssht_ti=[];wdt_ti=[]
         for j in range(len(j2)):
             if j2[j]!=0 and i2[j]!=0:
                 Xtn=np.append(Xtn,j2[j]);Ytn=np.append(Ytn,i2[j])
                 ut_ti=np.append(ut_ti,ut_time[j])
                 vt_ti=np.append(vt_ti,vt_time[j])
                 ssht_ti=np.append(ssht_ti,ssht_time[j])
-        uinterp=Rbf(Xtn,Ytn,ut_ti) #,kind='linear' changed to multiquadric in the tests it showed that both give same result.
-        vinterp=Rbf(Xtn,Ytn,vt_ti) #,kind='linear'
-        sshinterp=Rbf(Xtn,Ytn,ssht_ti)
-        #creating tides at buoy locations
-        Ut=np.append(Ut,uinterp(Buoy_Xi[i],Buoy_Yi[i]))
-        Vt=np.append(Vt,vinterp(Buoy_Xi[i],Buoy_Yi[i]))
-        #computation of gradient
-        # lat=Buoy_Yi[i];dlon=0.02;dlat=0.01 # dlon dlat
-        lat=Buoy_Yi[i];dlon=0.2;dlat=0.05
-        dzx=sshinterp(Buoy_Xi[i]+dlon,Buoy_Yi[i])-sshinterp(Buoy_Xi[i]-dlon,Buoy_Yi[i])
-        dzy=sshinterp(Buoy_Xi[i],Buoy_Yi[i]+dlat)-sshinterp(Buoy_Xi[i],Buoy_Yi[i]-dlat)
-        (dy,dx)=gf.latlon2meters(lat,2*dlat,2*dlon)
+                wdt_ti=np.append(wdt_ti,wdt_time[j])
+        points=np.array([Xtn,Ytn]).T
+        pointvec=np.array([[xk,yk],[xk+dlon,yk],[xk-dlon,yk],[xk,yk+dlat],[xk,yk-dlat]])
+        xp=pointvec[:,0];yp=pointvec[:,1]
+        sshgrid = griddata(points, ssht_ti, (xp, yp), method='linear')
+        utgrid=griddata(points, ut_ti, (xk, yk), method='linear')
+        vtgrid=griddata(points, vt_ti, (xk, yk), method='linear')
+        wdtgrid=griddata(points, wdt_ti, (xk, yk), method='linear')
+        # sshgrid = griddata((Xt,Yt), ssht_time, (xp, yp), method='cubic')
+        # utgrid=griddata((Xt,Yt), ut_time, (xk, yk), method='cubic')
+        # vtgrid=griddata((Xt,Yt), vt_time, (xk, yk), method='cubic')
+        Ut=np.append(Ut,utgrid)
+        Vt=np.append(Vt,vtgrid)
+        WDt=np.append(WDt,wdtgrid)
+        sshtvec=np.append(sshtvec,sshgrid[0])
+        dzx=sshgrid[1]-sshgrid[2];dzy=sshgrid[3]-sshgrid[4]
+        dzxr=sshgrid[1]-sshgrid[0];dzyr=sshgrid[3]-sshgrid[0]
+        dzxl=sshgrid[0]-sshgrid[2];dzyl=sshgrid[0]-sshgrid[4]
+        (dy,dx)=gf.latlon2meters(yk-dlat,2*dlat,2*dlon)
+        (dys,dxs)=gf.latlon2meters(yk,dlat,dlon)
         dzdx=dzx/dx;dzdy=dzy/dy
-        Pgxt=np.append(Pgxt,dzdx);Pgyt=np.append(Pgyt,dzdy)
+        dzdxr=dzxr/dxs;dzdyr=dzyr/dys
+        dzdxl=dzxl/dxs;dzdyl=dzyl/dys
+        Pgxt=np.append(Pgxt,dzdx);Pgyt=np.append(Pgyt,dzdy)    
+        Pgxtr=np.append(Pgxtr,dzdxr);Pgytr=np.append(Pgytr,dzdyr)
+        Pgxtl=np.append(Pgxtl,dzdxl);Pgytl=np.append(Pgytl,dzdyl)
+        # geostrophic vel computation.
+        f = 2.0*omega*np.sin(np.deg2rad(yk))
+        Utgi=-g*dzdy/f;Vtgi=g*dzdx/f
+        Utg=np.append(Utg,Utgi);Vtg=np.append(Vtg,Vtgi)
+        # print(i)
 
     logging.info("GTSM Tidal pressure gradients computation done.")        
     logging.info("Interpolation successfully done. Processing complete for GTSM data.")
@@ -149,7 +174,7 @@ def processall(Bnum,indexing,FD,sdate):
     # processing sea surface heights to calculate pressure gradients
     logging.info("Calculating pressure gradients from sea surface heights.")
     Buoy_Xi=Xib[::4];Buoy_Yi=Yib[::4]  #buoy longitude in hourly basis (x position)    
-    Uo=[];Vo=[]
+    Uo=[];Vo=[];Uog=[];Vog=[]
     Pgx=[]; Pgy=[]
     for i in range(arrlen):
     # evaluation for sea surface heights
@@ -168,10 +193,11 @@ def processall(Bnum,indexing,FD,sdate):
             for k in range(len(Xon)-1):
                 # dzet=ssh[i,j,k+1]-ssh[i,j,k] #earlier wrong logic
                 dzet=sshn[j,k+1]-sshn[j,k]
-                lat=Yo[j]
+                lat=Yon[j];lon=Xon[k]
                 dlat=0
                 # dlon=Xo[k+1]-Xo[k]  ## earlier wrong logic 
                 dlon=Xon[k+1]-Xon[k]
+                # (dy,dx)=gf.latlon2meters(lat,lon,dlat,dlon)
                 (dy,dx)=gf.latlon2meters(lat,dlat,dlon)
                 dzdxvec=np.append(dzdxvec,dzet/dx)
             dzdxmat[j,:]=dzdxvec
@@ -184,15 +210,21 @@ def processall(Bnum,indexing,FD,sdate):
             for k in range(len(Yon)-1):
                 # dzet=ssh[i,k+1,j]-ssh[i,k,j]
                 dzet=sshn[k+1,j]-sshn[k,j]
-                lat=Yo[k]
+                lat=Yon[k];lon=Xon[j]
                 # dlat=Yo[k+1]-Yo[k]
                 dlat=Yon[k+1]-Yon[k]
                 dlon=0
+                # (dy,dx)=gf.latlon2meters(lat,lon,dlat,dlon)
                 (dy,dx)=gf.latlon2meters(lat,dlat,dlon)
                 dzdyvec=np.append(dzdyvec,dzet/dy)
             dzdymat[:,j]=dzdyvec
         yinterp=interp2d(Xon,Yon,dzdymat,kind='linear')
         Pgy=np.append(Pgy,yinterp(Buoy_Xi[i],Buoy_Yi[i]))
+        # geostrophic vel computation.
+        f = 2.0*omega*np.sin(np.deg2rad(yk))
+        Uogi=-g*yinterp(Buoy_Xi[i],Buoy_Yi[i])/f
+        Vogi=g*xinterp(Buoy_Xi[i],Buoy_Yi[i])/f
+        Uog=np.append(Uog,Uogi);Vog=np.append(Vog,Vogi)
     # for ocean currents    
         uo_time=uo[i,:,:]
         vo_time=vo[i,:,:]
@@ -239,13 +271,18 @@ def processall(Bnum,indexing,FD,sdate):
 #  Transformations
 ## Creating a total vector for ease of representations
     Utvec=np.column_stack((Ut,Vt))
+    Utgvec=np.column_stack((Utg,Vtg))
     Pgtvec=np.column_stack((Pgxt,Pgyt))
+    Pgtrvec=np.column_stack((Pgxtr,Pgytr))
+    Pgtlvec=np.column_stack((Pgxtl,Pgytl))
     Fpgvec=np.column_stack((Fpgx,Fpgy))
     Uibvec=np.column_stack((Uib,Vib))
     Uavec=np.column_stack((Ua,Va))
     Uavec=np.repeat(Uavec,4,axis=0)
     Uovec=np.column_stack((Uo,Vo))
     Uovec=np.repeat(Uovec,4,axis=0)
+    Uogvec=np.column_stack((Uog,Vog))
+    Uogvec=np.repeat(Uogvec,4,axis=0)
     Uwvec=Utvec+Uovec
     Pgvec=np.column_stack((Pgx,Pgy))
     Pgvec=np.repeat(Pgvec,4,axis=0)
@@ -253,8 +290,8 @@ def processall(Bnum,indexing,FD,sdate):
 
     logging.info("Velocity vectors created successfully.")
 # Final Dictionary
-    PD={'Utvec':Utvec,'Uibvec':Uibvec,'Uavec':Uavec,'Uovec':Uovec,'Uwvec':Uwvec,
-        'Pgvec':Pgvec,'Pgtvec':Pgtvec,'Fpgvec':Fpgvec,'Hivec':Hivec,
+    PD={'Utvec':Utvec,'Uibvec':Uibvec,'Uavec':Uavec,'Uovec':Uovec,'Uwvec':Uwvec,'Utgvec':Utgvec,'Uogvec':Uogvec,
+        'Pgvec':Pgvec,'Pgtvec':Pgtvec,'Pgtrvec':Pgtrvec,'Pgtlvec':Pgtlvec,'Fpgvec':Fpgvec,'Hivec':Hivec,'WDt':WDt,'ssht':sshtvec,
         'Xib':Xib,'Yib':Yib,'Tib':Tib,'Tt':Tt,'Ta':Ta,'To':To,'Tft':Tft,'Te':Te}
     return(PD)
 
@@ -268,11 +305,16 @@ def save2excel(PD,path):
     dfwu = pd.DataFrame({'Uw': PD['Uwvec'][:,0]});dfwv = pd.DataFrame({'Vw': PD['Uwvec'][:,1]})
     dfpgx = pd.DataFrame({'Pgx': PD['Pgvec'][:,0]});dfpgy = pd.DataFrame({'Pgy': PD['Pgvec'][:,1]})
     dfpgxt = pd.DataFrame({'Pgxt': PD['Pgtvec'][:,0]});dfpgyt = pd.DataFrame({'Pgyt': PD['Pgtvec'][:,1]})
+    dfpgxtr = pd.DataFrame({'Pgxtr': PD['Pgtrvec'][:,0]});dfpgytr = pd.DataFrame({'Pgytr': PD['Pgtrvec'][:,1]})
+    dfpgxtl = pd.DataFrame({'Pgxtl': PD['Pgtlvec'][:,0]});dfpgytl = pd.DataFrame({'Pgytl': PD['Pgtlvec'][:,1]})
     dffpgx = pd.DataFrame({'Fpgx': PD['Fpgvec'][:,0]});dffpgy = pd.DataFrame({'Fpgy': PD['Fpgvec'][:,1]})
     dfibx = pd.DataFrame({'Xib': PD['Xib'][:-1]});dfiby = pd.DataFrame({'Yib': PD['Yib'][:-1]})
     dfta = pd.DataFrame({'Ta': PD['Ta'][:-1]});dftt = pd.DataFrame({'Tt': PD['Tt'][:-1]})
     dfto = pd.DataFrame({'To': PD['To'][:-1]});dftf = pd.DataFrame({'Tft':PD['Tft'][:-1]})
     dfhi=pd.DataFrame({'Hi':PD['Hivec'][:]});dfte = pd.DataFrame({'Te': PD['Te'][:-1]})
+    dfwdt = pd.DataFrame({'WDt': PD['WDt'][:]});dfssht = pd.DataFrame({'ssht': PD['ssht'][:]})
+    dfoug = pd.DataFrame({'Uog': PD['Uogvec'][:,0]});dfovg = pd.DataFrame({'Vog': PD['Uogvec'][:,1]})
+    dftug = pd.DataFrame({'Utg': PD['Utgvec'][:,0]});dftvg = pd.DataFrame({'Vtg': PD['Utgvec'][:,1]})
     # Create a Pandas Excel writer using XlsxWriter as the engine.
     writer = pd.ExcelWriter(path+'/Pos_Vel_data.xlsx', engine='xlsxwriter')
 
@@ -300,9 +342,21 @@ def save2excel(PD,path):
     dfta.to_excel(writer, startcol=19,startrow=0,index=False);dftt.to_excel(writer, startcol=20,startrow=0,index=False)
     dfto.to_excel(writer, startcol=21,startrow=0,index=False);dftf.to_excel(writer, startcol=22,startrow=0,index=False)
     # Ice thickness and time for ice thickness
-    dfhi.to_excel(writer, startcol=23,startrow=0,index=False);dfte.to_excel(writer, startcol=24,startrow=0,index=False)    
+    dfhi.to_excel(writer, startcol=23,startrow=0,index=False);dfte.to_excel(writer, startcol=24,startrow=0,index=False)  
+    #water depth and ssh from tidal model
+    dfwdt.to_excel(writer, startcol=25,startrow=0,index=False);dfssht.to_excel(writer, startcol=26,startrow=0,index=False) 
+    #Ocean geostrophic
+    dfoug.to_excel(writer, startcol=27,startrow=0,index=False);dfovg.to_excel(writer, startcol=28,startrow=0,index=False) 
+    #tide geostrophic
+    dftug.to_excel(writer, startcol=29,startrow=0,index=False);dftvg.to_excel(writer, startcol=30,startrow=0,index=False)  
+    # Sensitivity PGs
+    # Pressure gradients from tides in GTSM
+    dfpgxt.to_excel(writer,'PGs', startcol=0,startrow=0,index=False);dfpgyt.to_excel(writer,'PGs', startcol=1,startrow=0,index=False)  
+    dfpgxtr.to_excel(writer,'PGs', startcol=2,startrow=0,index=False);dfpgytr.to_excel(writer,'PGs', startcol=3,startrow=0,index=False)
+    dfpgxtl.to_excel(writer,'PGs', startcol=4,startrow=0,index=False);dfpgytl.to_excel(writer,'PGs', startcol=5,startrow=0,index=False)
+    
     workbook  = writer.book
-    worksheet = writer.sheets['Sheet1']
+    # worksheet = writer.sheets['Sheet1']
     merge_format = workbook.add_format({
     'bold': 1,
     'border': 1,

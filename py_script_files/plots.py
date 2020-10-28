@@ -60,11 +60,11 @@ def plticepos(Xib,Yib,Xis,Yis,path):
   feature=cpf.GSHHSFeature(scale='i',levels=[1],facecolor='#e6e1e1',alpha=1)
   ax.add_feature(feature) 
   plt.legend(prop={"size":16},framealpha=1)
-  plt.savefig(path+'/ice_drift.jpg')
+  plt.savefig(path+'/ice_drift.jpg',dpi=400)
   plt.close(fig) 
 
 
-def pltFT(path,name,xb,xs,units,tvec,argval):
+def pltFT(path,name,xs,xb,units,tvec,argval):
   s=settings.settings()
   fig=plt.figure(figsize=(21,7))
   ax1=plt.subplot2grid((2,1), (1,0), rowspan=1, colspan=1)
@@ -113,16 +113,19 @@ def pltfilsig(p1_x,p_xfilter,p_xresiduum,path,name):
   plt.close(fig)
 
 
-def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,labelname):
+def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,Coru,Corv,labelname):
   llim=0;ulim=spindex
+  colorswitch={'obs':'red','gtsm':'blue','imodel':'green','stidmodel':'black'}
   Y=np.zeros(len(Usres))
   fig=plt.figure(figsize=(15,4),frameon=True)
   ax1=plt.subplot(2,1,1)
   Tib=T[llim:ulim]
-  ax1.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='blue',label=labelname[0])
-  ax1.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='red',label=labelname[1])
+  ax1.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[0],"Invalid label name"),label=labelname[0])
+  ax1.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[1],"Invalid label name"),label=labelname[1])
   ax1.set_xlabel('Time',labelpad=0.05,fontsize=4, fontweight='bold')
   ax1.set_ylabel('Residual vel. vect.',labelpad=0.05,fontsize=4, fontweight='bold')
+  ax1.text(0.995, 0.83, 'CorU: '+str(round(Coru[0],2)),verticalalignment='top', horizontalalignment='right',transform=ax1.transAxes,color='black', fontsize=4)
+  ax1.text(0.995, 0.78, 'CorV: '+str(round(Corv[0],2)),verticalalignment='top', horizontalalignment='right',transform=ax1.transAxes,color='black', fontsize=4)
   labels=Tib[::96]
   plt.xticks(labels, labels, rotation='0',fontsize=4)
   plt.yticks(fontsize=4)
@@ -131,8 +134,8 @@ def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,labelname):
   llim=spindex;ulim=-1
   Tib=T[llim:ulim]
   ax2=plt.subplot(2,1,2)
-  ax2.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='blue',label=labelname[0])
-  ax2.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color='red',label=labelname[1])
+  ax2.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[0],"Invalid label name"),label=labelname[0])
+  ax2.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[1],"Invalid label name"),label=labelname[1])
   ax2.set_xlabel('Time',labelpad=0.05,fontsize=4, fontweight='bold')
   ax2.set_ylabel('Residual vel. vect.',labelpad=0.05,fontsize=4, fontweight='bold')
   ax2.legend(fontsize=4)

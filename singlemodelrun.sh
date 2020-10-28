@@ -16,6 +16,4 @@ export buoy=16
 #1 is for preprocessing and any other value is for not doing preprocessing.
 export preprocess=0
 
-
-
 python main_script.py $buoy $preprocess
