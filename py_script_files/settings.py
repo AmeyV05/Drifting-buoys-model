@@ -1,5 +1,7 @@
 global forcevec
 forcevec=[1,1,1,1,1,1,1,1,1,1,1,1,0,0]
+global h
+h=1.0
 # forcevec=[1,1,1,1,0,0,0,0,0,0,1,1,1,1]
 # This describes which forces and parameters are included. 
 #forcevec=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt,Bfx,Bfy]  # 1 is on and 0 is off
@@ -18,7 +20,7 @@ def settings():
 	s['rad2deg']= 180.0/np.pi
 	s['deg2rad']= np.pi/180.0
 	s['thetaa'] =0*s['deg2rad']#angle made by wind with ice velocity.
-	s['beta']=0*s['deg2rad']
+	s['beta']=-10*s['deg2rad']
 	s['thetaw'] = 0*s['deg2rad']                       
 	s['omega']  = (2.0*np.pi)/(24.0*s['hours'])
 	s['tmplier']=1/30
@@ -30,7 +32,7 @@ def settings():
 	s['iCb']=s['g']/Chezy**2
 	s['Nu0']=0
 	s['Nv0']=0
-	s['h']=1.
+	# s['h']=1.
 	s['trate']= 0     #-1.1e-07
 	s['l']=0
 	s['n']=4 #number of elements of model state vector.

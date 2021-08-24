@@ -16,7 +16,7 @@ def run(Bnum,indexing):
   path = "../../generated_data/"+bname
   PD=model.readposveldata(path)  
   s=settings.settings()
-  h=s['h'];trate=s['trate'];forcevec=settings.forcevec
+  h=settings.h;trate=s['trate'];forcevec=settings.forcevec
   (forcenam,folname)=gf.forcedetail(forcevec,trate,h)
   #creation of the folder for storing the simulated data.
   path=path+'/'+folname
@@ -32,7 +32,7 @@ def run(Bnum,indexing):
   Xis=PD['Xis']; Yis=PD['Yis'];Uisvec=PD['Uisvec']
   ## We will do elaborate plotting part later in postprocessing.
   logging.info("Plotting started")
-  plots.plticepos(Xib,Yib,Xis,Yis,path)
+  plots.plticepos(Xib,Yib,Xis,Yis,path,Bnum)
   logging.info("Plotting completed for the buoy path.")
   ## Statistic computation.
   (XD,YD)=statscompute(s,Xib,Yib,Xis,Yis)

@@ -34,7 +34,9 @@ def plticevel(Uisvec,Uibvec,Tib,path):
   plt.close(fig)
 
 
-def plticepos(Xib,Yib,Xis,Yis,path):
+def plticepos(Xib,Yib,Xis,Yis,path,Bnum):
+  prefix="BUOY_"
+  bname=prefix+Bnum
   fig=plt.figure(figsize=(12, 12), frameon=True)
   ax=plt.axes(projection=ccrs.LambertAzimuthalEqualArea(central_longitude=25.0,central_latitude=77.0)) 
   # ax.set_extent([15,33,74,81]) 
@@ -60,7 +62,7 @@ def plticepos(Xib,Yib,Xis,Yis,path):
   feature=cpf.GSHHSFeature(scale='i',levels=[1],facecolor='#e6e1e1',alpha=1)
   ax.add_feature(feature) 
   plt.legend(prop={"size":16},framealpha=1)
-  plt.savefig(path+'/ice_drift.jpg',dpi=400)
+  plt.savefig(path+'/sim_ice_drift'+bname+'.jpg',dpi=100)
   plt.close(fig) 
 
 
@@ -73,7 +75,7 @@ def pltFT(path,name,xs,xb,units,tvec,argval):
   l2=ax1.plot(tvec,xs[1,:],color='g',label="sim") 
   handles, labels = ax1.get_legend_handles_labels()
   ax1.legend(handles,labels,loc=1,fontsize='12')
-  ax1.set_xlim([5,27])
+  ax1.set_xlim([5,23])
   ak = lineid_plot.initial_annotate_kwargs()
   tide=np.array(list(s['tidedict'].keys()));cor=np.array(list(s['cordict'].values()))
   tidlab=np.append(tide,cor)

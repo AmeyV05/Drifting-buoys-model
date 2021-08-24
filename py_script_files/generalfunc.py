@@ -29,6 +29,12 @@ def logcreate(gendataloc):
   logging.getLogger('').addHandler(console)
   logging.disable(logging.DEBUG)
 
+
+#Excel value writer
+def valuewriter(writer,dname,dvalue,sheetname,i,j):
+  dft=pd.DataFrame({dname:dvalue})
+  dft.to_excel(writer,sheetname, startcol=i,startrow=j,index=False)
+
 # A conversion function to convert the latitudes and longitudes to meteres.
 # note that this is a simple conversion formula and not very accurate older version.
 def latlon2meters(lat,dlat,dlon):

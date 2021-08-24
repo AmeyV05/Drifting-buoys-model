@@ -6,8 +6,6 @@ import numpy as np
 import scipy.io
 from scipy.interpolate import interp2d
 from scipy.interpolate import griddata
-import pykrige.kriging_tools as kt
-from pykrige.ok import OrdinaryKriging
 import generalfunc as gf
 import settings
 import logging

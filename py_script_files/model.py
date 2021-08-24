@@ -116,6 +116,38 @@ def modelFx(x,consts,s):
     # Fx[3]=((Cai*rho_air*Va*Ua_mag)/(rho_ice*h))-((f*u)) -g*( Pgyt+Pgy)+stress[1]
     return (Fx)
 
+def embmodelFx(x,consts,s):
+    dt=s['dt']; N=s['n']
+    g=s['g'];thetaa=s['thetaa']
+    thetaw=s['thetaw'];rho_water=s['rho_water'];beta=s['beta']
+    rho_air=s['rho_air']; rho_ice=s['rho_ice']
+    [f, h, Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt,Hinv,Hinv] =consts
+    [xc,yc,u,v] = x
+    Cwi=s['iCw'];Cai=s['iCa'];Cbi=s['iCb']
+    #matrix C. 
+    A=np.eye(2)*(rho_ice*h) 
+    B=gf.rotmatrix(-(np.pi/2.)-beta)
+    B=(rho_water*Cwi/f)*B 
+    C=np.linalg.inv(A+B)
+    # print("C is")
+    # print(C)
+    #matrix C1
+    A1=gf.rotmatrix(-(np.pi/2.))*(rho_ice*h*f)
+    B1=gf.rotmatrix(-(np.pi)-beta)
+    B1=(rho_water*Cwi)*B1 
+    C1=A1+B1
+    # print("C1 is")
+    # print(C1)
+    #air stress vec
+    Ua_mag=np.sqrt((Ua)**2+(Va)**2)
+    # Ua=Va=0
+    tau_a=np.array([[Cai*rho_air*Ua],[Cai*rho_air*Va]])
+    Fx=np.zeros(N+2)
+    Fx[0]=u+ug;Fx[1]=v+vg
+    Fx[2:4]=(C@tau_a+C@C1@np.array([[u],[v]])).flatten()
+    Fx[4]=0
+    Fx[5]=0
+    return (Fx)
 
 ## model simulation
 def simulate(s,Bnum,indexing,forcevec,PD):
@@ -123,7 +155,7 @@ def simulate(s,Bnum,indexing,forcevec,PD):
     Uavec=PD['Uavec'];Pgvec=PD['Pgvec'];Pgtvec=PD['Pgtvec'];Hvec=PD['WDt']
     Utvec=PD['Utvec']; Uovec=PD['Uovec'];
     # Utvec=PD['Utgvec']; Uovec=PD['Uogvec'];  #####warning don't uncomment; but also don't remove the line.
-    ho=s['h'];trate=s['trate'];Yib=PD['Yib'];Fpgvec=PD['Fpgvec'];omega=s['omega'];tmplier=s['tmplier']
+    ho=settings.h;trate=s['trate'];Yib=PD['Yib'];Fpgvec=PD['Fpgvec'];omega=s['omega'];tmplier=s['tmplier']
     logging.info("Time step is:" +str(s['dt'])+' seconds')
     logging.info("Ice Air drag coefficient is:" +str(s['iCa']))
     logging.info("Ice Water drag coefficient is:" +str(s['iCw']))
@@ -148,10 +180,11 @@ def simulate(s,Bnum,indexing,forcevec,PD):
         #  ice thickness with thinning rate (trate); trate=0 for constant thickness 
         if ((ti*tmplier)%1==0):
             h=gf.thinrate(ho,trate)   
-        hvec=np.append(hvec,h*forcevec[1]);ho=h
+        # hvec=np.append(hvec,h*forcevec[1]);
+        ho=h
         consts=[f,h,Ua, Va, Ut, Vt, Uo, Vo,Pgx,Pgy,Pgxt,Pgyt,1./H,1./H]
         consts[10:12]=[Pgxt,Pgyt] if s['tidepg']=='GTSM' else [Fpgx,Fpgy]
-        consts=np.multiply(forcevec,consts) #To get ice thickness in it and remove bottom friction if reqd
+        consts=np.multiply(forcevec,consts);consts[1]=h #To get ice thickness in it and remove bottom friction if reqd
         if (s['mod']=='ExplicitEuler'):
             xn=expeumodel(x,consts,s)
         else:
@@ -188,7 +221,7 @@ def main():
     path = "../../generated_data/"+bname
     PD=readposveldata(path)   
     s=settings.settings()
-    h=s['h'];trate=s['trate']
+    h=settings.h;trate=s['trate']
     (forcenam,folname)=gf.forcedetail(forcevec,trate,h)
     #creation of the folder for storing the simulated data.
     path=path+'/'+folname
