@@ -15,20 +15,22 @@ import shapely.geometry as sgeom
 def plticevel(Uisvec,Uibvec,Tib,path):
   fig=plt.figure(figsize=(16, 5))
   plt.subplot(1,2,1)
-  plt.plot(Tib,Uibvec[:,0],color='r',label='buoy_drift')
-  plt.plot(Tib,Uisvec[:,0],color='g',linestyle=":",label='sim_ice_drift')
-  plt.xlabel('Time (s)',fontweight='bold')
+  plt.plot(Tib,Uibvec[:,0],color='r',label='Obs')
+  plt.plot(Tib,Uisvec[:,0],color='g',label='Mod')
+  plt.xlabel('Time',fontweight='bold')
   plt.ylabel('U (m/s)',fontweight='bold')
   labels=Tib[::800] 
-  plt.xticks(labels, labels, rotation='0')
+  plt.xticks(labels, labels, rotation='0',fontsize='11')
+  plt.yticks(fontsize=11)
   plt.legend(loc=1)               
   plt.subplot(1,2,2)
-  plt.plot(Tib,Uibvec[:,1],color='r',label='buoy_drift')
-  plt.plot(Tib,Uisvec[:,1],color='g',linestyle=":",label='sim_ice_drift')
-  plt.xlabel('Time (s)',fontweight='bold')
+  plt.plot(Tib,Uibvec[:,1],color='r',label='Obs')
+  plt.plot(Tib,Uisvec[:,1],color='g',label='Mod')
+  plt.xlabel('Time',fontweight='bold')
   plt.ylabel('V (m/s)',fontweight='bold')
   labels=Tib[::800] 
-  plt.xticks(labels, labels, rotation='0')
+  plt.xticks(labels, labels, rotation='0',fontsize='11')
+  plt.yticks(fontsize=11)
   plt.legend(loc=1)
   plt.savefig(path+'/velplot.jpg', format='jpg')
   plt.close(fig)
@@ -54,14 +56,14 @@ def plticepos(Xib,Yib,Xis,Yis,path,Bnum):
   lambert_yticks(ax, yticks)
 
   # Plotting buoy obs and buoy simulated locations
-  plt.plot(Xib,Yib,color='red',transform=ccrs.PlateCarree(),label='buoy drift')
-  plt.plot(Xis,Yis,'--',color='yellow',transform=ccrs.PlateCarree(),label='simulated ice drift') 
+  plt.plot(Xib,Yib,color='red',transform=ccrs.PlateCarree(),label='Obs')
+  plt.plot(Xis,Yis,color='green',transform=ccrs.PlateCarree(),label='Mod') 
   # gebco wms background 
   service='https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?'
   ax.add_wms(service,layers=['GEBCO_LATEST'],wms_kwargs={'width':900*2,'height':600*2})
   feature=cpf.GSHHSFeature(scale='i',levels=[1],facecolor='#e6e1e1',alpha=1)
   ax.add_feature(feature) 
-  plt.legend(prop={"size":16},framealpha=1)
+  plt.legend(prop={"size":18},framealpha=1)
   plt.savefig(path+'/sim_ice_drift'+bname+'.jpg',dpi=100)
   plt.close(fig) 
 
@@ -94,6 +96,48 @@ def pltFT(path,name,xs,xb,units,tvec,argval):
   plt.savefig(path+'/'+name+'.jpg',format='jpg')
   plt.close(fig)
 
+def pltFTn(path,name,xs,xb,units,tvec,argval):
+  s=settings.settings()
+  tidedict=s['tidedict'];cordict=s['cordict']
+  Tcordict=[];Ttiddict=[]
+  for k in cordict.keys():
+      phi=np.deg2rad(cordict[k])
+      f=2*s['omega']*np.sin(phi)
+      T=2*np.pi/(f*3600)
+      Tcordict=np.append(Tcordict,T)
+  for k in tidedict.keys():
+      Ttiddict=np.append(Ttiddict,tidedict[k])
+  freqvec=np.append(Ttiddict,Tcordict)
+  fig=plt.figure(figsize=(21,9))
+  ax1=plt.subplot2grid((2,1), (1,0), rowspan=1, colspan=1)
+  l1=ax1.plot(tvec,xb[1,:],color='r',label="Obs")
+  l2=ax1.plot(tvec,xs[1,:],color='g',label="Mod") 
+  handles, labels = ax1.get_legend_handles_labels()
+  ax1.legend(handles,labels,loc=1,fontsize='18')
+  ax1.set_xlim([5,23])
+  for xc in freqvec:
+      plt.axvline(x=xc,color='k', linestyle='--',alpha=0.5) 
+  ak = lineid_plot.initial_annotate_kwargs()
+  tide=np.array(list(s['tidedict'].keys()));cor=np.array(list(s['cordict'].values()))
+  tidlab=np.append(tide,cor)
+  lineid_plot.plot_line_ids(tvec, xb[1,:], freqvec, tidlab,ax=ax1,max_iter=30000,label1_size=18)
+  plt.xlabel('Period [h]',fontsize=18,fontweight='bold')
+  plt.ylabel('Phase (deg)',fontsize=18,fontweight='bold')
+  ax2=fig.add_axes([0.125, 0.57, 0.775, 0.34],sharex=ax1)
+  l1=ax2.plot(tvec,xb[0,:],color='r',label="Obs")
+  l2=ax2.plot(tvec,xs[0,:],color='g',label="Mod")
+  handles, labels = ax2.get_legend_handles_labels()
+  ax2.legend(handles,labels,loc=1,fontsize='18')
+  for xc in freqvec:
+      plt.axvline(x=xc,color='k', linestyle='--',alpha=0.5) 
+  lineid_plot.plot_line_ids(tvec, xb[0,:], freqvec, tidlab,ax=ax2,max_iter=30000,label1_size=18) #
+  plt.ylabel('Amplitude ('+units+')',fontsize=18,fontweight='bold')
+  plt.setp(ax2.get_xticklabels(), visible=False)
+  plt.xticks(fontsize=18);plt.yticks(fontsize=18)
+  plt.savefig(path+'/'+name+'.jpg',format='jpg')
+  plt.show()
+  plt.close(fig)
+
 
 
 def pltfilsig(p1_x,p_xfilter,p_xresiduum,path,name):
@@ -117,7 +161,7 @@ def pltfilsig(p1_x,p_xfilter,p_xresiduum,path,name):
 
 def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,Coru,Corv,labelname):
   llim=0;ulim=spindex
-  colorswitch={'obs':'red','gtsm':'blue','imodel':'green','stidmodel':'black'}
+  colorswitch={'Obs':'red','Tides':'blue','Mod':'green','stidmodel':'black'}
   Y=np.zeros(len(Usres))
   fig=plt.figure(figsize=(15,4),frameon=True)
   ax1=plt.subplot(2,1,1)
@@ -138,8 +182,8 @@ def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,Coru,Corv,label
   ax2=plt.subplot(2,1,2)
   ax2.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[0],"Invalid label name"),label=labelname[0])
   ax2.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[1],"Invalid label name"),label=labelname[1])
-  ax2.set_xlabel('Time',labelpad=0.05,fontsize=4, fontweight='bold')
-  ax2.set_ylabel('Residual vel. vect.',labelpad=0.05,fontsize=4, fontweight='bold')
+  ax2.set_xlabel('Time',labelpad=0.05,fontsize=5, fontweight='bold')
+  ax2.set_ylabel('Residual velocity',labelpad=0.05,fontsize=5, fontweight='bold')
   ax2.legend(fontsize=4)
   labels=Tib[::96]
   plt.xticks(labels, labels, rotation='0',fontsize=4)
