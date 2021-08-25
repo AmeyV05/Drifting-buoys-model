@@ -10,6 +10,9 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import lineid_plot
 from copy import copy
 import shapely.geometry as sgeom
+params={"font.weight":'bold'}
+plt.rcParams.update(params)
+
 ## plotting of x and y ice buoy velocities versus simulated drifts. 
 
 def plticevel(Uisvec,Uibvec,Tib,path):
@@ -169,7 +172,7 @@ def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,Coru,Corv,label
   ax1.quiver(Tib,Y[llim:ulim],Usres[llim:ulim],Vsres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[0],"Invalid label name"),label=labelname[0])
   ax1.quiver(Tib,Y[llim:ulim],Ubres[llim:ulim],Vbres[llim:ulim],angles='uv',scale=1,scale_units='y',width=0.0004,color=colorswitch.get(labelname[1],"Invalid label name"),label=labelname[1])
   ax1.set_xlabel('Time',labelpad=0.05,fontsize=4, fontweight='bold')
-  ax1.set_ylabel('Residual vel. vect.',labelpad=0.05,fontsize=4, fontweight='bold')
+  ax1.set_ylabel('Residual velocity',labelpad=0.05,fontsize=4, fontweight='bold')
   ax1.text(0.995, 0.83, 'CorU: '+str(round(Coru[0],2)),verticalalignment='top', horizontalalignment='right',transform=ax1.transAxes,color='black', fontsize=4)
   ax1.text(0.995, 0.78, 'CorV: '+str(round(Corv[0],2)),verticalalignment='top', horizontalalignment='right',transform=ax1.transAxes,color='black', fontsize=4)
   labels=Tib[::96]

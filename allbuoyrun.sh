@@ -18,7 +18,7 @@ cd
 export preprocess=0
 
 #for i in 02 03 09 13 14 16
-for i in 02 03 09 13 14 16  
+for i in 02 03 09 13 14 16 
 do
   if [ $preprocess == 1 ]
   then
