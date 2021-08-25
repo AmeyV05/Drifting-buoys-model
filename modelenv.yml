@@ -11,7 +11,7 @@ dependencies:
   - cartopy
   - netCDF4
   - xarray
-
+  - jupyter
   - pip:
     - openpyxl
     - lineid_plot
