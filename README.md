@@ -10,7 +10,7 @@ The python based code produces simulation output for free drift ice motion and c
 Note that one should be connected to the Deltares P: project directory for the code to successfully run.
 One needs access to the folders: 
 (Windows hence ' $backslash$ ' and not '/')
-P:\1230882-emodnet_hrsm\fromAmey\container\Data_from_models 
+P:\1230882-emodnet_hrsm\fromAmey\container\Model_n_buoy_data 
 P:\1230882-emodnet_hrsm\fromAmey\container\Buoy_data_excel
 
 In case you are connected to Deltares via a VPN then, it is highly recommended to copy these folders in to a directory called 'container' outside the repository "Drifting-ice-buoys" and run the code. 

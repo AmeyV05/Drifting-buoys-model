@@ -14,7 +14,7 @@ import settings
 def readsimdata(Bnum,folname):
 	bname='BUOY_'+Bnum
 	loc='../../generated_data/'+bname+'/'+folname+'/'
-	file='simdata_'+bname+'.xlsx'
+	file='Simdata_'+bname+'.xlsx'
 	df=pd.read_excel(loc+file,'Model_Data')
 	Xis=np.array(df['Xis']);Yis=np.array(df['Yis'])
 	Xib=np.array(df['Xib']);Yib=np.array(df['Yib'])
