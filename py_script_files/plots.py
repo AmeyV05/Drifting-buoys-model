@@ -192,7 +192,7 @@ def pltvelquiver(loc,name,T,spindex,ylim,Usres,Vsres,Ubres,Vbres,Coru,Corv,label
   plt.xticks(labels, labels, rotation='0',fontsize=4)
   plt.yticks(fontsize=4)
   plt.ylim([-ylim,ylim])
-  plt.savefig(loc+name+'tidal_vel_vect.jpg',format='jpg',dpi=600)
+  plt.savefig(loc+name+'tidal_vel_vect.jpg',format='jpg',dpi=200)
   plt.close(fig)
 
 def pltallbuoytracks(loc,BD):
